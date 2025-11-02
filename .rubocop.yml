@@ -1,8 +1,69 @@
-# Omakase Ruby styling for Rails
-inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+require:
+  - rubocop-performance
+  - rubocop-rspec
+  - rubocop-rails
 
-# Overwrite or add rules to create your own house style
-#
-# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
-# Layout/SpaceInsideArrayLiteralBrackets:
-#   Enabled: false
+AllCops:
+  TargetRubyVersion: 3.2
+  Exclude:
+    - 'bin/**/*'
+    - 'db/schema.rb'
+    - 'db/migrate/*'
+    - 'node_modules/**/*'
+    - 'vendor/**/*'
+    - 'test/**/*'
+    - 'lib/**/*'
+    - 'db/seeds.rb'
+    - 'config/**/*'
+    - 'app/workers/**/*'
+
+# Basic configuration for Ruby style and syntax.
+# See https://rubocop.org/config/default.yml for all options.
+Style/Documentation:
+  Enabled: false
+Style/FrozenStringLiteralComment:
+  Enabled: false
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+# Configuration for Rails-specific cops.
+# These are disabled by default if Rails is not detected.
+# See https://github.com/rubocop/rubocop-rails for all options.
+Rails:
+  Enabled: true
+
+# Configuration for RSpec-specific cops.
+# These are disabled by default if RSpec is not detected.
+# See https://github.com/rubocop/rubocop-rspec for all options.
+RSpec:
+  Enabled: true
+
+# Configuration for the Naming/FileName cop, which checks
+# for correct file naming conventions.
+# See https://rubocop.org/cops/naming/file_name.html for all options.
+Naming/FileName:
+  Enabled: true
+  Exclude:
+    - 'db/schema.rb'
+
+# Configuration for the Metrics/MethodLength cop, which checks
+# for methods that are too long.
+# See https://rubocop.org/cops/metrics/method_length.html for all options.
+Metrics/MethodLength:
+  Max: 15
+
+# Configuration for the Metrics/AbcSize cop, which checks
+# for methods that are too complex.
+# See https://rubocop.org/cops/metrics/abc_size.html for all options.
+Metrics/AbcSize:
+  Max: 20
+
+Layout/LineLength:
+  Max: 140
+
+Naming/VariableNumber:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*.rb'
