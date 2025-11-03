@@ -13,7 +13,6 @@ class Contract
     stack.each { |s| Rails.logger.debug "- #{s[:qty]}x #{s[:item].name} ($#{s[:item].latest_steam_price})" }
     Rails.logger.debug "Outcomes:"
     outcomes.each { |o| Rails.logger.debug "  #{(o[:probability]*100).round(2)}% -> #{o[:item].name} ($#{o[:price]})" }
-    Rails.logger.debug
   end
 end
 

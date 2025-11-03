@@ -14,13 +14,15 @@ module Tradeups
                    price_fee_multiplier: 1.0,
                    min_profit: 0.0,
                    limit_per_collection: 10,
-                   max_cost: nil)
+                   max_cost: nil,
+                   minimum_outcome_lose: 100)
       @from_rarity = from_rarity
       @max_unique_inputs = max_unique_inputs
       @price_fee_multiplier = price_fee_multiplier
       @min_profit = min_profit
       @limit_per_collection = limit_per_collection
       @max_cost = max_cost || Float::INFINITY
+      @minimum_outcome_lose = minimum_outcome_lose
     end
 
     def call
@@ -63,6 +65,9 @@ module Tradeups
           profit = expected_value - cost
 
           next if profit < @min_profit
+
+          required_min_ratio = 1.0 - (@minimum_outcome_lose.to_f / 100.0)
+          next if minimal_expected_value < (required_min_ratio * cost)
 
           results << Contract.new(
             collection: collection,
