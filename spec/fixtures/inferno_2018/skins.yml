@@ -9,6 +9,7 @@ inferno2018_duals_twin_turbo:
   max_float: 0.70
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Classified
 
 inferno2018_sg553_integrale:
   name: "SG 553 | Integrale"
@@ -21,6 +22,7 @@ inferno2018_sg553_integrale:
   max_float: 0.90
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Classified
 
 inferno2018_ak47_safety_net:
   name: "AK-47 | Safety Net"
@@ -33,6 +35,7 @@ inferno2018_ak47_safety_net:
   max_float: 0.70
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Restricted
 
 inferno2018_mp7_fade:
   name: "MP7 | Fade"
@@ -45,6 +48,7 @@ inferno2018_mp7_fade:
   max_float: 0.08
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Restricted
 
 inferno2018_p250_vino_primo:
   name: "P250 | Vino Primo"
@@ -57,6 +61,7 @@ inferno2018_p250_vino_primo:
   max_float: 0.55
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Restricted
 
 inferno2018_m4a4_converter:
   name: "M4A4 | Converter"
@@ -69,6 +74,7 @@ inferno2018_m4a4_converter:
   max_float: 0.60
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Mid-Spec Grade
 
 inferno2018_ssg08_hand_brake:
   name: "SSG 08 | Hand Brake"
@@ -81,6 +87,7 @@ inferno2018_ssg08_hand_brake:
   max_float: 0.60
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Mid-Spec Grade
 
 inferno2018_usp_check_engine:
   name: "USP-S | Check Engine"
@@ -93,6 +100,7 @@ inferno2018_usp_check_engine:
   max_float: 0.70
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Mid-Spec Grade
 
 inferno2018_sawedoff_brake_light:
   name: "Sawed-Off | Brake Light"
@@ -105,6 +113,7 @@ inferno2018_sawedoff_brake_light:
   max_float: 0.60
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Mid-Spec Grade
 
 inferno2018_glock18_high_beam:
   name: "Glock-18 | High Beam"
@@ -117,6 +126,7 @@ inferno2018_glock18_high_beam:
   max_float: 0.25
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Industrial Grade
 
 inferno2018_r8_nitro:
   name: "R8 Revolver | Nitro"
@@ -129,6 +139,7 @@ inferno2018_r8_nitro:
   max_float: 0.80
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Industrial Grade
 
 inferno2018_mac10_calf_skin:
   name: "MAC-10 | Calf Skin"
@@ -141,6 +152,7 @@ inferno2018_mac10_calf_skin:
   max_float: 1.00
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Industrial Grade
 
 inferno2018_bizon_candy_apple:
   name: "PP-Bizon | Candy Apple"
@@ -153,6 +165,7 @@ inferno2018_bizon_candy_apple:
   max_float: 0.25
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Industrial Grade
 
 inferno2018_mp5sd_dirt_drop:
   name: "MP5-SD | Dirt Drop"
@@ -165,6 +178,7 @@ inferno2018_mp5sd_dirt_drop:
   max_float: 1.00
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Consumer Grade
 
 inferno2018_mp9_slide:
   name: "MP9 | Slide"
@@ -177,6 +191,7 @@ inferno2018_mp9_slide:
   max_float: 1.00
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Consumer Grade
 
 inferno2018_ump45_mudder:
   name: "UMP-45 | Mudder"
@@ -189,6 +204,7 @@ inferno2018_ump45_mudder:
   max_float: 1.00
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Consumer Grade
 
 inferno2018_aug_sweeper:
   name: "AUG | Sweeper"
@@ -201,6 +217,7 @@ inferno2018_aug_sweeper:
   max_float: 0.10
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Consumer Grade
 
 inferno2018_mag7_rust_coat:
   name: "MAG-7 | Rust Coat"
@@ -213,3 +230,4 @@ inferno2018_mag7_rust_coat:
   max_float: 1.00
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  rarity: Consumer Grade

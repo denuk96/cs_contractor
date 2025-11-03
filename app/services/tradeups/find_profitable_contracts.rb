@@ -15,7 +15,8 @@ module Tradeups
                    min_profit: 0.0,
                    limit_per_collection: 10,
                    max_cost: nil,
-                   minimum_outcome_lose: 100)
+                   minimum_outcome_lose: 100,
+                   skip_if_price_missing: true)
       @from_rarity = from_rarity
       @max_unique_inputs = max_unique_inputs
       @price_fee_multiplier = price_fee_multiplier
@@ -23,6 +24,7 @@ module Tradeups
       @limit_per_collection = limit_per_collection
       @max_cost = max_cost || Float::INFINITY
       @minimum_outcome_lose = minimum_outcome_lose
+      @skip_if_price_missing = skip_if_price_missing
     end
 
     def call
@@ -59,6 +61,10 @@ module Tradeups
           next if cost > @max_cost
 
           outcome_probs = build_outcome_probabilities(stack, outcomes)
+          if @skip_if_price_missing
+            next if outcome_probs.size < Skin.where(collection_name: collection, rarity: next_rarity_name).count
+          end
+
           expected_value = outcome_probs.sum { |o| o[:probability] * (o[:price] * @price_fee_multiplier) }
           minimal_expected_value = outcome_probs.map { |o| o[:price] * @price_fee_multiplier }.min
           maximum_expected_value = outcome_probs.map { |o| o[:price] * @price_fee_multiplier }.max
