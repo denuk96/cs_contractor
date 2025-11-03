@@ -9,12 +9,18 @@ module Tradeups
     # - price_fee_multiplier: e.g., 0.87 to model Steam fee on sell price (default 1.0)
     # - min_profit: only return contracts with profit >= this (default 0)
     # - limit_per_collection: cap results per collection (default 10)
-    def initialize(from_rarity: nil, max_unique_inputs: 10, price_fee_multiplier: 1.0, min_profit: 0.0, limit_per_collection: 10)
+    def initialize(from_rarity: nil,
+                   max_unique_inputs: 10,
+                   price_fee_multiplier: 1.0,
+                   min_profit: 0.0,
+                   limit_per_collection: 10,
+                   max_cost: nil)
       @from_rarity = from_rarity
       @max_unique_inputs = max_unique_inputs
       @price_fee_multiplier = price_fee_multiplier
       @min_profit = min_profit
       @limit_per_collection = limit_per_collection
+      @max_cost = max_cost || Float::INFINITY
     end
 
     def call
@@ -48,6 +54,8 @@ module Tradeups
 
         candidate_stacks(inputs).each do |stack|
           cost = stack.sum { |h| h[:item].latest_steam_price.to_f * h[:qty] }
+          next if cost > @max_cost
+
           outcome_probs = build_outcome_probabilities(stack, outcomes)
           expected_value = outcome_probs.sum { |o| o[:probability] * (o[:price] * @price_fee_multiplier) }
           minimal_expected_value = outcome_probs.map { |o| o[:price] * @price_fee_multiplier }.min
