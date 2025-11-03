@@ -1,269 +1,191 @@
 inferno2018_duals_twin_turbo:
   name: "Dual Berettas | Twin Turbo"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 4            # Classified
-  wear: 1              # Minimal Wear
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
-  stattrak: false
-  category: "Pistol"
-  min_float: 0.00
-  max_float: 0.70
+  wear: 0              # Factory New
   latest_steam_price: 20.03
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_duals_twin_turbo
 
 inferno2018_sg553_integrale:
   name: "SG 553 | Integrale"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 4            # Classified
   wear: 0              # Factory New
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
-  stattrak: false
-  category: "Rifle"
-  min_float: 0.00
-  max_float: 0.90
   latest_steam_price: 40.53
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_sg553_integrale
 
 inferno2018_ak47_safety_net:
   name: "AK-47 | Safety Net"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 3            # Restricted
-  wear: 0              # Field-Tested
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  wear: 0              # Factory New
+  souvenir: false
   stattrak: false
-  category: "Rifle"
-  min_float: 0.00
-  max_float: 0.70
   latest_steam_price: 17.18
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_ak47_safety_net
 
 inferno2018_mp7_fade:
   name: "MP7 | Fade"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 3            # Restricted
   wear: 0              # Factory New
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  souvenir: false
   stattrak: false
-  category: "SMG"
-  min_float: 0.00
-  max_float: 0.08
   latest_steam_price: 25.00
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_mp7_fade
 
 inferno2018_p250_vino_primo:
   name: "P250 | Vino Primo"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 3            # Restricted
-  wear: 1              # Minimal Wear
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  wear: 0              # Minimal Wear
+  souvenir: false
   stattrak: false
-  category: "Pistol"
-  min_float: 0.00
-  max_float: 0.55
   latest_steam_price: 7.25
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_p250_vino_primo
 
 inferno2018_m4a4_converter:
   name: "M4A4 | Converter"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 2            # Mid-Spec Grade (Mil-Spec)
   wear: 0              # Field-Tested
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  souvenir: false
   stattrak: false
-  category: "Rifle"
-  min_float: 0.00
-  max_float: 0.60
   latest_steam_price: 3.64
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_m4a4_converter
 
 inferno2018_ssg08_hand_brake:
   name: "SSG 08 | Hand Brake"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 2            # Mid-Spec Grade (Mil-Spec)
   wear: 0              # Field-Tested
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  souvenir: false
   stattrak: false
-  category: "Sniper Rifle"
-  min_float: 0.00
-  max_float: 0.60
   latest_steam_price: 3.42
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_ssg08_hand_brake
 
 inferno2018_usp_check_engine:
   name: "USP-S | Check Engine"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 2            # Mid-Spec Grade (Mil-Spec)
-  wear: 1              # Minimal Wear
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  wear: 0              # Minimal Wear
+  souvenir: false
   stattrak: false
-  category: "Pistol"
-  min_float: 0.00
-  max_float: 0.70
   latest_steam_price: 7.25
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_usp_check_engine
 
 inferno2018_sawedoff_brake_light:
   name: "Sawed-Off | Brake Light"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 2            # Mid-Spec Grade (Mil-Spec)
   wear: 0              # Field-Tested
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  souvenir: false
   stattrak: false
-  category: "Shotgun"
-  min_float: 0.00
-  max_float: 0.60
   latest_steam_price: 0.05
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_sawedoff_brake_light
 
 inferno2018_glock18_high_beam:
   name: "Glock-18 | High Beam"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 1            # Industrial Grade
   wear: 0              # Factory New
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  souvenir: false
   stattrak: false
-  category: "Pistol"
-  min_float: 0.00
-  max_float: 0.25
   latest_steam_price: 1.73
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_glock18_high_beam
 
 inferno2018_r8_nitro:
   name: "R8 Revolver | Nitro"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 1            # Industrial Grade
   wear: 3              # Well-Worn
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
-  stattrak: false
-  category: "Pistol"
-  min_float: 0.06
-  max_float: 0.80
   latest_steam_price: 0.10
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_r8_nitro
 
 inferno2018_mac10_calf_skin:
   name: "MAC-10 | Calf Skin"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 1            # Industrial Grade
-  wear: 4              # Battle-Scarred
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  wear: 0              # Battle-Scarred
+  souvenir: false
   stattrak: false
-  category: "SMG"
-  min_float: 0.00
-  max_float: 1.00
   latest_steam_price: 0.10
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_mac10_calf_skin
 
 inferno2018_bizon_candy_apple:
   name: "PP-Bizon | Candy Apple"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 1            # Industrial Grade
   wear: 0              # Factory New
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  souvenir: false
   stattrak: false
-  category: "SMG"
-  min_float: 0.00
-  max_float: 0.25
   latest_steam_price: 0.43
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_bizon_candy_apple
 
 inferno2018_mp5sd_dirt_drop:
   name: "MP5-SD | Dirt Drop"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 0            # Consumer Grade
   wear: 0              # Field-Tested
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  souvenir: false
   stattrak: false
-  category: "SMG"
-  min_float: 0.00
-  max_float: 1.00
   latest_steam_price: 0.04
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_mp5sd_dirt_drop
 
 inferno2018_mp9_slide:
   name: "MP9 | Slide"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 0            # Consumer Grade
-  wear: 1              # Minimal Wear
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  wear: 0              # Minimal Wear
+  souvenir: false
   stattrak: false
-  category: "SMG"
-  min_float: 0.00
-  max_float: 1.00
   latest_steam_price: 0.04
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_mp9_slide
 
 inferno2018_ump45_mudder:
   name: "UMP-45 | Mudder"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 0            # Consumer Grade
   wear: 3              # Well-Worn
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  souvenir: false
   stattrak: false
-  category: "SMG"
-  min_float: 0.00
-  max_float: 1.00
   latest_steam_price: 0.03
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_ump45_mudder
 
 inferno2018_aug_sweeper:
   name: "AUG | Sweeper"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 0            # Consumer Grade
   wear: 0              # Factory New
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  souvenir: false
   stattrak: false
-  category: "Rifle"
-  min_float: 0.00
-  max_float: 0.10
   latest_steam_price: 0.05
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_aug_sweeper
 
 inferno2018_mag7_rust_coat:
   name: "MAG-7 | Rust Coat"
-  object_id: <%= SecureRandom.uuid %>
   rarity: 0            # Consumer Grade
-  wear: 4              # Battle-Scarred
-  collection_name: "The 2018 Inferno Collection"
-  souvenir: true
+  wear: 0              # Battle-Scarred
+  souvenir: false
   stattrak: false
-  category: "Shotgun"
-  min_float: 0.00
-  max_float: 1.00
   latest_steam_price: 0.03
   created_at: <%= Time.current %>
   updated_at: <%= Time.current %>
+  skin: inferno2018_mag7_rust_coat

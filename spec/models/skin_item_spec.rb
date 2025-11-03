@@ -4,18 +4,19 @@
 #
 #  id                 :integer          not null, primary key
 #  name               :string
-#  object_id          :string
 #  rarity             :integer
 #  wear               :integer
-#  collection_name    :string
 #  souvenir           :boolean
 #  stattrak           :boolean
-#  category           :string
-#  min_float          :float
-#  max_float          :float
 #  latest_steam_price :float
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
+#  skin_id            :integer
+#
+# Indexes
+#
+#  index_skin_items_on_name     (name) UNIQUE
+#  index_skin_items_on_skin_id  (skin_id)
 #
 
 require 'rails_helper'

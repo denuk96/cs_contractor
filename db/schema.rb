@@ -10,20 +10,39 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_02_140413) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_03_205713) do
   create_table "skin_items", force: :cascade do |t|
-    t.string "category"
-    t.string "collection_name"
     t.datetime "created_at", null: false
     t.float "latest_steam_price"
-    t.float "max_float"
-    t.float "min_float"
     t.string "name"
-    t.string "object_id"
     t.integer "rarity"
+    t.integer "skin_id"
     t.boolean "souvenir"
     t.boolean "stattrak"
     t.datetime "updated_at", null: false
     t.integer "wear"
+    t.index ["name"], name: "index_skin_items_on_name", unique: true
+    t.index ["skin_id"], name: "index_skin_items_on_skin_id"
   end
+
+  create_table "skins", force: :cascade do |t|
+    t.string "category"
+    t.string "collection_name"
+    t.text "crates"
+    t.datetime "created_at", null: false
+    t.float "max_float"
+    t.float "min_float"
+    t.string "name"
+    t.string "object_id"
+    t.string "rarity"
+    t.boolean "souvenir"
+    t.boolean "stattrak"
+    t.datetime "updated_at", null: false
+    t.text "weapon"
+    t.text "wears"
+    t.index ["name"], name: "index_skins_on_name", unique: true
+    t.index ["object_id"], name: "index_skins_on_object_id", unique: true
+  end
+
+  add_foreign_key "skin_items", "skins"
 end

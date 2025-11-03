@@ -11,14 +11,15 @@ RSpec.describe Tradeups::FindProfitableContracts do
   end
 
   before do
+    ActiveRecord::FixtureSet.create_fixtures(Rails.root.join("spec/fixtures/inferno_2018"), "skins")
     ActiveRecord::FixtureSet.create_fixtures(Rails.root.join("spec/fixtures/inferno_2018"), "skin_items")
   end
 
   context "when contracts are found" do
     it "returns a list of contracts" do
       contracts = tradeup.call
-      minimum_outcome = SkinItem.find_by(name: "P250 | Vino Primo")
-      maximum_outcome = SkinItem.find_by(name: "MP7 | Fade")
+      minimum_outcome = Skin.find_by(name: "P250 | Vino Primo").skin_items.first
+      maximum_outcome = Skin.find_by(name: "MP7 | Fade").skin_items.first
       expect(contracts.size).to eq(1)
       expect(contracts.first.stack.first[:item].name).to eq("Sawed-Off | Brake Light")
       expect(contracts.first.cost).to eq(0.5)

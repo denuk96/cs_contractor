@@ -21,39 +21,8 @@ module Tradeups
       results = []
       collections.each do |collection|
         SkinItem.wears.each_key do |wear|
-          rarities = rarity_groups_for(collection, wear)
-          rarities.each do |rarity_name, inputs|
-            next unless next_rarity_name = next_rarity(rarity_name)
-            next if @from_rarity && rarity_name != @from_rarity
-
-            outcomes = SkinItem.where(collection_name: collection, rarity: SkinItem.rarities[next_rarity_name]).to_a
-            next if outcomes.empty?
-
-            candidate_stacks(inputs).each do |stack|
-              cost = stack.sum { |h| h[:item].latest_steam_price.to_f * h[:qty] }
-              outcome_probs = build_outcome_probabilities(stack, outcomes)
-              expected_value = outcome_probs.sum { |o| o[:probability] * (o[:price] * @price_fee_multiplier) }
-              minimal_expected_value = outcome_probs.map { |o| o[:price] * @price_fee_multiplier }.min
-              maximum_expected_value = outcome_probs.map { |o| o[:price] * @price_fee_multiplier }.max
-              profit = expected_value - cost
-
-              next if profit < @min_profit
-
-              results << Contract.new(
-                collection: collection,
-                from_rarity: rarity_name,
-                wear:,
-                to_rarity: next_rarity_name,
-                stack: stack,
-                cost: cost,
-                outcomes: outcome_probs,
-                expected_value:,
-                profit:,
-                minimal_expected_value:,
-                maximum_expected_value:
-              )
-            end
-          end
+          generate_contracts(collection:, wear:, stattrak: false, results:)
+          generate_contracts(collection:, wear:, stattrak: true, results:)
         end
       end
 
@@ -62,13 +31,58 @@ module Tradeups
 
     private
 
-    def collections
-      SkinItem.group(:collection_name).select(:collection_name).pluck(:collection_name)
+    def generate_contracts(collection:, wear:, stattrak: false, results: [])
+      rarities = rarity_groups_for(collection, wear, stattrak)
+      rarities.each do |rarity_name, inputs|
+        next unless next_rarity_name = next_rarity(rarity_name)
+        next if @from_rarity && rarity_name != @from_rarity
+
+        outcomes = SkinItem.joins(:skin)
+                           .where(skins: { collection_name: collection },
+                                  rarity: SkinItem.rarities[next_rarity_name],
+                                  stattrak:,
+                                  wear:)
+                           .not_souvenir
+                           .distinct.to_a
+        next if outcomes.empty?
+
+        candidate_stacks(inputs).each do |stack|
+          cost = stack.sum { |h| h[:item].latest_steam_price.to_f * h[:qty] }
+          outcome_probs = build_outcome_probabilities(stack, outcomes)
+          expected_value = outcome_probs.sum { |o| o[:probability] * (o[:price] * @price_fee_multiplier) }
+          minimal_expected_value = outcome_probs.map { |o| o[:price] * @price_fee_multiplier }.min
+          maximum_expected_value = outcome_probs.map { |o| o[:price] * @price_fee_multiplier }.max
+          profit = expected_value - cost
+
+          next if profit < @min_profit
+
+          results << Contract.new(
+            collection: collection,
+            from_rarity: rarity_name,
+            wear:,
+            to_rarity: next_rarity_name,
+            stack: stack,
+            cost: cost,
+            outcomes: outcome_probs,
+            expected_value:,
+            profit:,
+            minimal_expected_value:,
+            maximum_expected_value:
+          )
+        end
+      end
+
     end
 
-    def rarity_groups_for(collection, wear)
-      SkinItem.where(collection_name: collection)
-              .where(wear: wear)
+    def collections
+      Skin.group(:collection_name).select(:collection_name).pluck(:collection_name)
+    end
+
+    def rarity_groups_for(collection, wear, stattrak)
+      SkinItem.joins(:skin)
+              .where(skins: { collection_name: collection })
+              .where(stattrak:, wear:)
+              .contractable
               .group_by(&:rarity_before_type_cast)
               .transform_keys { |rk| SkinItem.rarities.key(rk) }
               .transform_values { |items| items.sort_by { |i| i.latest_steam_price.to_f } }

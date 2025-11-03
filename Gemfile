@@ -12,6 +12,7 @@ gem "sqlite3", ">= 2.1"
 gem "stimulus-rails"
 gem "turbo-rails"
 
+gem 'brotli',  '~> 0.4'
 gem "faraday"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]

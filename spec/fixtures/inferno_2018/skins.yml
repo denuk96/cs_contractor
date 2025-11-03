@@ -1,0 +1,215 @@
+inferno2018_duals_twin_turbo:
+  name: "Dual Berettas | Twin Turbo"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "Pistol"
+  min_float: 0.00
+  max_float: 0.70
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_sg553_integrale:
+  name: "SG 553 | Integrale"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "Rifle"
+  min_float: 0.00
+  max_float: 0.90
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_ak47_safety_net:
+  name: "AK-47 | Safety Net"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "Rifle"
+  min_float: 0.00
+  max_float: 0.70
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_mp7_fade:
+  name: "MP7 | Fade"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "SMG"
+  min_float: 0.00
+  max_float: 0.08
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_p250_vino_primo:
+  name: "P250 | Vino Primo"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "Pistol"
+  min_float: 0.00
+  max_float: 0.55
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_m4a4_converter:
+  name: "M4A4 | Converter"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "Rifle"
+  min_float: 0.00
+  max_float: 0.60
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_ssg08_hand_brake:
+  name: "SSG 08 | Hand Brake"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "Sniper Rifle"
+  min_float: 0.00
+  max_float: 0.60
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_usp_check_engine:
+  name: "USP-S | Check Engine"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "Pistol"
+  min_float: 0.00
+  max_float: 0.70
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_sawedoff_brake_light:
+  name: "Sawed-Off | Brake Light"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "Shotgun"
+  min_float: 0.00
+  max_float: 0.60
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_glock18_high_beam:
+  name: "Glock-18 | High Beam"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "Pistol"
+  min_float: 0.00
+  max_float: 0.25
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_r8_nitro:
+  name: "R8 Revolver | Nitro"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "Pistol"
+  min_float: 0.06
+  max_float: 0.80
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_mac10_calf_skin:
+  name: "MAC-10 | Calf Skin"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "SMG"
+  min_float: 0.00
+  max_float: 1.00
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_bizon_candy_apple:
+  name: "PP-Bizon | Candy Apple"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "SMG"
+  min_float: 0.00
+  max_float: 0.25
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_mp5sd_dirt_drop:
+  name: "MP5-SD | Dirt Drop"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "SMG"
+  min_float: 0.00
+  max_float: 1.00
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_mp9_slide:
+  name: "MP9 | Slide"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "SMG"
+  min_float: 0.00
+  max_float: 1.00
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_ump45_mudder:
+  name: "UMP-45 | Mudder"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "SMG"
+  min_float: 0.00
+  max_float: 1.00
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_aug_sweeper:
+  name: "AUG | Sweeper"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "Rifle"
+  min_float: 0.00
+  max_float: 0.10
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+inferno2018_mag7_rust_coat:
+  name: "MAG-7 | Rust Coat"
+  object_id: <%= SecureRandom.uuid %>
+  collection_name: "The 2018 Inferno Collection"
+  souvenir: true
+  stattrak: false
+  category: "Shotgun"
+  min_float: 0.00
+  max_float: 1.00
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
