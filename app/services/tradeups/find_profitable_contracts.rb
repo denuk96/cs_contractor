@@ -53,6 +53,7 @@ module Tradeups
                                   stattrak:,
                                   wear:)
                            .not_souvenir
+                           .have_prices
                            .distinct.to_a
         next if outcomes.empty?
 
@@ -102,6 +103,7 @@ module Tradeups
               .where(skins: { collection_name: collection })
               .where(stattrak:, wear:)
               .contractable
+              .have_prices
               .group_by(&:rarity_before_type_cast)
               .transform_keys { |rk| SkinItem.rarities.key(rk) }
               .transform_values { |items| items.sort_by { |i| i.latest_steam_price.to_f } }

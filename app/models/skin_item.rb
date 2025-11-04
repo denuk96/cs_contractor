@@ -48,4 +48,5 @@ class SkinItem < ApplicationRecord
          .where.not(skins: { category: %w[Gloves Knives] })
          .where(souvenir: false)
   }
+  scope :have_prices, -> { where.not(latest_steam_price: nil) }
 end

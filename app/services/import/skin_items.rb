@@ -11,7 +11,7 @@ module Import
           next
         end
 
-        latest_steam_price = price["suggested_price"]
+        latest_steam_price = price["quantity"].to_i > 9 ? price["median_price"] : nil
         wear = define_wear(price["market_hash_name"])
         SkinItem.upsert(
           {  name: price["market_hash_name"],
