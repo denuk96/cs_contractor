@@ -2,7 +2,7 @@ namespace :import do
   task prices: :environment do
     Rails.logger = Logger.new(STDOUT)
     Rails.logger.level = Logger::DEBUG
-    Import::SkinItems.new.call
+    Import::SkinItems.new.fetch_webapi_data
     # SkinItem.joins(:skin)
     #         .where.not(skin: {category: %w[Gloves Knives]})
     #         .where(last_steam_price_updated_at: nil)

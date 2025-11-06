@@ -1,9 +1,32 @@
 module Import
   class SkinItems
-    URL = "https://api.skinport.com/v1/items?app_id=730&currency=USD".freeze
+    def fetch_webapi_data
+      json = SteamWebApi.new.fetch_data(game: "cs2")
+      json.each do |price|
+        skin = find_skin(price["markethashname"])
+        if skin.nil?
+          Rails.logger.warn("Could not find skin for #{price["markethashname"]}")
+          next
+        end
+        wear = define_wear(price["markethashname"])
+        latest_steam_price = (price["pricelatestsell"] || price["buyordermedian"]).to_f
+        SkinItem.upsert(
+          {  name: price["markethashname"],
+             rarity: skin.rarity,
+             wear:,
+             souvenir: price["issouvenir"],
+             stattrak: price["isstattrak"],
+             skin_id: skin.id,
+             latest_steam_price: latest_steam_price,
+             last_steam_price_updated_at: Time.zone.now
+          },
+          unique_by: :index_skin_items_on_name
+        )
+      end
+    end
 
-    def call
-      json = fetch_data
+    def fetch_skinport_data
+      json = SkinportApi.new.fetch_data
       json.each do |price|
         skin = find_skin(price["market_hash_name"])
         if skin.nil?
@@ -35,26 +58,6 @@ module Import
                      .strip
       # Skin.where("name LIKE ?", "%#{raw_name}%").first
       Skin.where(name: raw_name).first
-    end
-
-    def fetch_data
-      resp = Faraday.get(URL) do |r|
-        r.headers["Accept"] = "application/json"
-        r.headers["Accept-Encoding"] = "br"      # required by Skinport
-        r.options.open_timeout = 5
-        r.options.timeout = 5
-      end
-      raise "HTTP #{resp.status}" unless resp.success?
-
-      body =
-        if resp.headers["content-encoding"]&.include?("br")
-          require "brotli"
-          Brotli.inflate(resp.body)
-        else
-          resp.body
-        end
-
-      JSON.parse(body)
     end
 
     def define_wear(name)
