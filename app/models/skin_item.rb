@@ -2,16 +2,17 @@
 #
 # Table name: skin_items
 #
-#  id                 :integer          not null, primary key
-#  name               :string
-#  rarity             :integer
-#  wear               :integer
-#  souvenir           :boolean
-#  stattrak           :boolean
-#  latest_steam_price :float
-#  created_at         :datetime         not null
-#  updated_at         :datetime         not null
-#  skin_id            :integer
+#  id                          :integer          not null, primary key
+#  name                        :string
+#  rarity                      :integer
+#  wear                        :integer
+#  souvenir                    :boolean
+#  stattrak                    :boolean
+#  latest_steam_price          :float
+#  created_at                  :datetime         not null
+#  updated_at                  :datetime         not null
+#  skin_id                     :integer
+#  last_steam_price_updated_at :datetime
 #
 # Indexes
 #
@@ -49,4 +50,17 @@ class SkinItem < ApplicationRecord
          .where(souvenir: false)
   }
   scope :have_prices, -> { where.not(latest_steam_price: nil) }
+
+  def update_latest_price
+    result = SteamApi.price_overview(name, timeout: 10, open_timeout: 5)
+    unless result[:success]
+      Rails.logger.warn "Failed to get price for #{name}: #{result.inspect}"
+      return false
+    end
+
+    return false if result[:lowest_price].nil?
+
+    Rails.logger.info "Updating price for #{name}: #{result.inspect}"
+    update(latest_steam_price: result[:lowest_price].delete("$").to_f, last_steam_price_updated_at: Time.zone.now)
+  end
 end

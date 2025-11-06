@@ -14,7 +14,7 @@ gem "turbo-rails"
 
 gem 'brotli',  '~> 0.4'
 gem "faraday"
-
+gem "faraday-retry"
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
@@ -46,7 +46,6 @@ group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "dotenv"
   gem "factory_bot_rails"
-  gem "factory_bot_rails"
   gem "ffaker"
   gem "rspec-rails"
   gem "rubocop", require: false
@@ -58,7 +57,6 @@ end
 
 group :development do
   gem 'annotate'
-  gem "ffaker"
   gem "web-console"
   gem "webdrivers"
   gem "webmock"

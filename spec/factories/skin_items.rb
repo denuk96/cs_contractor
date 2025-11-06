@@ -2,16 +2,17 @@
 #
 # Table name: skin_items
 #
-#  id                 :integer          not null, primary key
-#  name               :string
-#  rarity             :integer
-#  wear               :integer
-#  souvenir           :boolean
-#  stattrak           :boolean
-#  latest_steam_price :float
-#  created_at         :datetime         not null
-#  updated_at         :datetime         not null
-#  skin_id            :integer
+#  id                          :integer          not null, primary key
+#  name                        :string
+#  rarity                      :integer
+#  wear                        :integer
+#  souvenir                    :boolean
+#  stattrak                    :boolean
+#  latest_steam_price          :float
+#  created_at                  :datetime         not null
+#  updated_at                  :datetime         not null
+#  skin_id                     :integer
+#  last_steam_price_updated_at :datetime
 #
 # Indexes
 #

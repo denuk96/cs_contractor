@@ -11,7 +11,7 @@ module Import
           next
         end
 
-        latest_steam_price = price["quantity"].to_i > 9 ? price["median_price"] : nil
+        # latest_steam_price = price["quantity"].to_i > 9 ? price["median_price"] : nil
         wear = define_wear(price["market_hash_name"])
         SkinItem.upsert(
           {  name: price["market_hash_name"],
@@ -19,7 +19,6 @@ module Import
              wear:,
              souvenir: price["market_hash_name"].include?("Souvenir"),
              stattrak: price["market_hash_name"].include?("StatTrak™"),
-             latest_steam_price:,
              skin_id: skin.id
           },
           unique_by: :index_skin_items_on_name
