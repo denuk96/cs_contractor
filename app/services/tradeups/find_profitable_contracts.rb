@@ -296,7 +296,7 @@ module Tradeups
         {
           item: outcome,
           probability: prob,
-          price: outcome.latest_steam_price.to_f
+          price: outcome.latest_steam_order_price.to_f
         }
       end
     end

@@ -10,10 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_06_193057) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_06_200226) do
   create_table "skin_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "last_steam_price_updated_at"
+    t.float "latest_steam_order_price"
     t.float "latest_steam_price"
     t.text "metadata"
     t.string "name"
