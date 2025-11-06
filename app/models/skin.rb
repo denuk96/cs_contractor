@@ -30,4 +30,12 @@ class Skin < ApplicationRecord
   serialize :weapon, type: Hash, default: {}, coder: JSON
 
   has_many :skin_items, dependent: :destroy
+
+  {
+    "Factory New" => 0.07,
+    "Minimal Wear" => 0.07..0.15,
+    "Field-Tested" => 0.15..0.38,
+    "Well-Worn" => 0.38..0.45,
+    "Battle-Scarred" => 0.45..1.0
+  }
 end

@@ -16,7 +16,8 @@ module Tradeups
                    limit_per_collection: 10,
                    max_cost: nil,
                    minimum_outcome_lose: 100,
-                   skip_if_price_missing: true)
+                   skip_if_price_missing: true,
+                   consider_float: true)
       @from_rarity = from_rarity
       @max_unique_inputs = max_unique_inputs
       @price_fee_multiplier = price_fee_multiplier
@@ -25,6 +26,7 @@ module Tradeups
       @max_cost = max_cost || Float::INFINITY
       @minimum_outcome_lose = minimum_outcome_lose
       @skip_if_price_missing = skip_if_price_missing
+      @consider_float = consider_float
     end
 
     def call
@@ -47,19 +49,30 @@ module Tradeups
         next unless next_rarity_name = next_rarity(rarity_name)
         next if @from_rarity && rarity_name != @from_rarity
 
-        outcomes = SkinItem.joins(:skin)
-                           .where(skins: { collection_name: collection },
-                                  rarity: SkinItem.rarities[next_rarity_name],
-                                  stattrak:,
-                                  wear:)
-                           .not_souvenir
-                           .have_prices
-                           .distinct.to_a
-        next if outcomes.empty?
+        # Get all potential outcomes for the next rarity (all wears)
+        all_outcomes = SkinItem.joins(:skin)
+                               .where(skins: { collection_name: collection },
+                                      rarity: SkinItem.rarities[next_rarity_name],
+                                      stattrak:)
+                               .not_souvenir
+                               .have_prices
+                               .distinct
+
+        next if all_outcomes.empty?
 
         candidate_stacks(inputs).each do |stack|
           cost = stack.sum { |h| h[:item].latest_steam_price.to_f * h[:qty] }
           next if cost > @max_cost
+
+          # Calculate achievable float range and filter outcomes accordingly
+          if @consider_float
+            outcomes = filter_outcomes_by_float(stack, all_outcomes)
+          else
+            # Fall back to same-wear matching
+            outcomes = all_outcomes.where(wear:).to_a
+          end
+
+          next if outcomes.empty?
 
           outcome_probs = build_outcome_probabilities(stack, outcomes)
           if @skip_if_price_missing
@@ -115,6 +128,87 @@ module Tradeups
       return nil unless idx && idx + 1 < order.size
 
       order[idx + 1]
+    end
+
+    # Worst-case float assumptions for market items (near the upper bound of each wear)
+    WORST_CASE_FLOATS = {
+      "Factory New" => 0.063,      # Close to 0.07 cap
+      "Minimal Wear" => 0.143,     # Close to 0.15 cap
+      "Field-Tested" => 0.37,      # Close to 0.38 cap
+      "Well-Worn" => 0.44,         # Close to 0.45 cap
+      "Battle-Scarred" => 0.79     # Higher end of BS range
+    }.freeze
+
+    # Filter outcomes based on achievable float values from input stack
+    def filter_outcomes_by_float(stack, all_outcomes)
+      # Calculate average normalized float from inputs
+      avg_normalized_float = calculate_average_normalized_float(stack)
+
+      achievable_outcomes = []
+
+      # Group outcomes by unique skin
+      all_outcomes.group_by(&:skin_id).each do |skin_id, outcome_items|
+        skin = outcome_items.first.skin
+        next unless skin.min_float && skin.max_float
+
+        # Calculate expected output float for this skin
+        output_float = skin.min_float + (avg_normalized_float * (skin.max_float - skin.min_float))
+
+        # Determine which wear this float corresponds to
+        output_wear = float_to_wear(output_float)
+
+        # Find the matching wear variant
+        matching_outcome = outcome_items.find { |item| item.wear == output_wear }
+        achievable_outcomes << matching_outcome if matching_outcome
+      end
+
+      achievable_outcomes
+    end
+
+    # Calculate the average normalized float from input stack
+    def calculate_average_normalized_float(stack)
+      total_normalized = 0.0
+
+      stack.each do |h|
+        item = h[:item]
+        qty = h[:qty]
+        skin = item.skin
+
+        # Get worst-case float for this wear
+        input_float = WORST_CASE_FLOATS[item.wear]
+        next unless input_float
+
+        # Normalize: (actual_float - min_cap) / (max_cap - min_cap)
+        if skin.min_float && skin.max_float && skin.max_float > skin.min_float
+          # Clamp float within skin's actual range
+          clamped_float = [[input_float, skin.min_float].max, skin.max_float].min
+          normalized = (clamped_float - skin.min_float) / (skin.max_float - skin.min_float)
+        else
+          # Fallback if float data missing
+          normalized = input_float
+        end
+
+        total_normalized += normalized * qty
+      end
+
+      total_normalized / 10.0
+    end
+
+    # Map float value to wear category
+    # CS2 float ranges: FN(0-0.07), MW(0.07-0.15), FT(0.15-0.38), WW(0.38-0.45), BS(0.45-1.0)
+    def float_to_wear(float_value)
+      case float_value
+      when 0.0...0.07
+        "Factory New"
+      when 0.07...0.15
+        "Minimal Wear"
+      when 0.15...0.38
+        "Field-Tested"
+      when 0.38...0.45
+        "Well-Worn"
+      else
+        "Battle-Scarred"
+      end
     end
 
     # Build stacks of 10 items using up to @max_unique_inputs distinct skins.

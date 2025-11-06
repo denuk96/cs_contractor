@@ -13,6 +13,7 @@
 #  updated_at                  :datetime         not null
 #  skin_id                     :integer
 #  last_steam_price_updated_at :datetime
+#  metadata                    :text
 #
 # Indexes
 #
@@ -22,6 +23,8 @@
 
 class SkinItem < ApplicationRecord
   belongs_to :skin
+
+  serialize :metadata, type: Hash, default: {}, coder: JSON
 
   enum :rarity, {
     "Consumer Grade" => 0,

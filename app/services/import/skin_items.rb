@@ -9,7 +9,7 @@ module Import
           next
         end
         wear = define_wear(price["markethashname"])
-        latest_steam_price = (price["pricelatestsell"] || price["buyordermedian"]).to_f
+        latest_steam_price = (price["pricelatest"] || price["pricelatestsell"] || price["buyordermedian"]).to_f
         SkinItem.upsert(
           {  name: price["markethashname"],
              rarity: skin.rarity,
@@ -18,11 +18,12 @@ module Import
              stattrak: price["isstattrak"],
              skin_id: skin.id,
              latest_steam_price: latest_steam_price,
-             last_steam_price_updated_at: Time.zone.now
+             last_steam_price_updated_at: Time.zone.now,
+             metadata: price
           },
           unique_by: :index_skin_items_on_name
         )
-      end
+      end;
     end
 
     def fetch_skinport_data

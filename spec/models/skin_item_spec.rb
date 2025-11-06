@@ -13,6 +13,7 @@
 #  updated_at                  :datetime         not null
 #  skin_id                     :integer
 #  last_steam_price_updated_at :datetime
+#  metadata                    :text
 #
 # Indexes
 #
