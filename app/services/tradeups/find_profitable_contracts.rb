@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/BlockLength
+# rubocop:disable Metrics/BlockLength, Metrics/ParameterLists
 module Tradeups
   class FindProfitableContracts
     # Options:
@@ -17,7 +17,8 @@ module Tradeups
                    max_cost: nil,
                    minimum_outcome_lose: 100,
                    skip_if_price_missing: true,
-                   consider_float: true)
+                   consider_float: true,
+                   cheapest_fill_count: nil)
       @from_rarity = from_rarity
       @max_unique_inputs = max_unique_inputs
       @price_fee_multiplier = price_fee_multiplier
@@ -27,6 +28,7 @@ module Tradeups
       @minimum_outcome_lose = minimum_outcome_lose
       @skip_if_price_missing = skip_if_price_missing
       @consider_float = consider_float
+      @cheapest_fill_count = cheapest_fill_count
     end
 
     def call
@@ -60,7 +62,14 @@ module Tradeups
 
         next if all_outcomes.empty?
 
-        candidate_stacks(inputs).each do |stack|
+        # Get cheapest items from any collection if cheapest_fill_count is set
+        cheapest_fillers = if @cheapest_fill_count && @cheapest_fill_count > 0
+                             get_cheapest_fillers(rarity_name, wear, stattrak, inputs)
+                           else
+                             []
+                           end
+
+        candidate_stacks(inputs, cheapest_fillers).each do |stack|
           cost = stack.sum { |h| h[:item].latest_steam_price.to_f * h[:qty] }
           next if cost > @max_cost
 
@@ -100,7 +109,8 @@ module Tradeups
             expected_value:,
             profit:,
             minimal_expected_value:,
-            maximum_expected_value:
+            maximum_expected_value:,
+            cheapest_fill_count: @cheapest_fill_count
           )
         end
       end
@@ -120,6 +130,35 @@ module Tradeups
               .group_by(&:rarity_before_type_cast)
               .transform_keys { |rk| SkinItem.rarities.key(rk) }
               .transform_values { |items| items.sort_by { |i| i.latest_steam_price.to_f } }
+        end
+
+    # Get cheapest items from ANY collection with matching rarity, wear, and stattrak
+    def get_cheapest_fillers(rarity_name, wear, stattrak, exclude_items = [])
+      exclude_ids = exclude_items.map(&:id)
+      next_rarity_name = next_rarity(rarity_name)
+
+      return [] unless next_rarity_name
+
+      # Find all collections that have items in the next rarity tier
+      # This ensures we only use items that can actually be traded up
+      valid_collections = Skin.where(rarity: next_rarity_name)
+                              .distinct
+                              .pluck(:collection_name)
+
+      # Get the wear enum value for comparison
+      # Lower quality (higher wear value) is allowed: BS(4) >= WW(3) >= FT(2) >= MW(1) >= FN(0)
+      target_wear_value = SkinItem.wears[wear]
+
+      SkinItem.joins(:skin)
+              .where(rarity: SkinItem.rarities[rarity_name], stattrak:)
+              .where('wear <= ?', target_wear_value)
+              .where(skins: { collection_name: valid_collections })
+              .where.not(id: exclude_ids)
+              .contractable
+              .have_prices
+              .order('latest_steam_price ASC')
+              .limit(10)
+              .to_a
     end
 
     def next_rarity(rarity_name)
@@ -214,7 +253,8 @@ module Tradeups
     # Build stacks of 10 items using up to @max_unique_inputs distinct skins.
     # Simple heuristic: take cheapest k unique inputs (k up to @max_unique_inputs),
     # distribute quantities to total 10 (biased toward the cheapest).
-    def candidate_stacks(inputs)
+    # If @cheapest_fill_count is set, ensures at least that many of the cheapest item are included.
+    def candidate_stacks(inputs, cheapest_fillers = [])
       return [] if inputs.empty?
 
       uniq_limits = (1..[@max_unique_inputs, inputs.size].min).to_a
@@ -235,8 +275,35 @@ module Tradeups
           stacks << even_split(pool)
         end
 
+        # Strategy D: if cheapest_fill_count is specified and we have fillers from other collections
+        if @cheapest_fill_count && @cheapest_fill_count > 0 && cheapest_fillers.any?
+          stacks << cheapest_fill_strategy(pool, cheapest_fillers)
+        end
+
         stacks.map { |s| normalize_stack(s) }.uniq { |s| s.map { |h| [h[:item].id, h[:qty]] } }
       end
+    end
+
+    def cheapest_fill_strategy(pool, cheapest_fillers)
+      # Use the absolute cheapest item available (from any collection)
+      cheapest_item = cheapest_fillers.first
+      cheapest_count = [@cheapest_fill_count, 10].min
+      remaining = 10 - cheapest_count
+
+      stack = [{ item: cheapest_item, qty: cheapest_count }]
+
+      # Distribute remaining slots among target collection items
+      if remaining > 0
+        per_item = remaining / pool.size
+        leftover = remaining % pool.size
+
+        pool.each_with_index do |item, idx|
+          qty = per_item + (idx < leftover ? 1 : 0)
+          stack << { item: item, qty: qty } if qty > 0
+        end
+      end
+
+      stack
     end
 
     def greedy_fill(pool)
@@ -308,4 +375,4 @@ module Tradeups
     end
   end
 end
-# rubocop:enable Metrics/BlockLength
+# rubocop:enable Metrics/BlockLength, Metrics/ParameterLists
