@@ -50,7 +50,7 @@ class SkinItem < ApplicationRecord
   scope :contractable, -> {
     joins(:skin)
       .where.not(rarity: %w[Extraordinary Contraband])
-         .where.not(skins: { category: %w[Gloves Knives] })
+         .where(skins: { category: %w[Rifles SMGs Pistols Heavy Equipment] })
          .where(souvenir: false)
   }
   scope :have_prices, -> { where.not(latest_steam_price: nil) }

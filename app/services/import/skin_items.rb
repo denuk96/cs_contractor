@@ -55,12 +55,16 @@ module Import
     private
 
     def find_skin(name)
-      raw_name = name.gsub(/\s\([^()]*\)\s*\z/, "")
-                     .gsub("Souvenir", "")
-                     .gsub("StatTrak™", "")
-                     .strip
+      raw_name = name.gsub("StatTrak™", "")
+                     .gsub(/ {2,}/, ' ')
+      unless raw_name.include?("Sticker") || raw_name.include?("Graffiti") || raw_name.include?("Holo") || raw_name.include?("Foil")
+        raw_name = raw_name.gsub(/\s\([^()]*\)\s*\z/, "")
+      end
+      unless raw_name.include?("Souvenir Charm") || raw_name.include?("Souvenir Package")
+        raw_name = raw_name.gsub("Souvenir", "")
+      end
       # Skin.where("name LIKE ?", "%#{raw_name}%").first
-      Skin.where(name: raw_name).first
+      Skin.where(name: raw_name.strip).first
     end
 
     def define_wear(name)
