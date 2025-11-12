@@ -18,7 +18,8 @@ module Tradeups
                    minimum_outcome_lose: 100,
                    skip_if_price_missing: true,
                    consider_float: true,
-                   cheapest_fill_count: nil)
+                   cheapest_fill_count: nil,
+                   outcome_price_type: :latest_steam_price)
       @from_rarity = from_rarity
       @max_unique_inputs = max_unique_inputs
       @price_fee_multiplier = price_fee_multiplier
@@ -29,6 +30,7 @@ module Tradeups
       @skip_if_price_missing = skip_if_price_missing
       @consider_float = consider_float
       @cheapest_fill_count = cheapest_fill_count
+      @outcome_price_type = outcome_price_type
     end
 
     def call
@@ -363,7 +365,7 @@ module Tradeups
         {
           item: outcome,
           probability: prob,
-          price: outcome.latest_steam_order_price.to_f
+          price: outcome.send(@outcome_price_type).to_f
         }
       end
     end

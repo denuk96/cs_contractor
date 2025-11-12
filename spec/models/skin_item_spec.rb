@@ -15,6 +15,7 @@
 #  last_steam_price_updated_at :datetime
 #  metadata                    :text
 #  latest_steam_order_price    :float
+#  latest_steam_sell_price     :float
 #
 # Indexes
 #
