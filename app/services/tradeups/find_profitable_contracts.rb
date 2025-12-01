@@ -19,7 +19,8 @@ module Tradeups
                    skip_if_price_missing: true,
                    consider_float: true,
                    cheapest_fill_count: nil,
-                   outcome_price_type: :latest_steam_price)
+                   outcome_price_type: :latest_steam_price,
+                   filler_strategy: :cheapest_any) # :cheapest_any | :mixed_high_wear
       @from_rarity = from_rarity
       @max_unique_inputs = max_unique_inputs
       @price_fee_multiplier = price_fee_multiplier
@@ -31,7 +32,9 @@ module Tradeups
       @consider_float = consider_float
       @cheapest_fill_count = cheapest_fill_count
       @outcome_price_type = outcome_price_type
+      @filler_strategy = filler_strategy
     end
+
 
     def call
       results = []
@@ -66,7 +69,7 @@ module Tradeups
 
         # Get cheapest items from any collection if cheapest_fill_count is set
         cheapest_fillers = if @cheapest_fill_count && @cheapest_fill_count > 0
-                             get_cheapest_fillers(rarity_name, wear, stattrak, inputs)
+                             get_cheapest_fillers(collection, rarity_name, wear, stattrak, inputs)
                            else
                              []
                            end
@@ -134,8 +137,17 @@ module Tradeups
               .transform_values { |items| items.sort_by { |i| i.latest_steam_price.to_f } }
         end
 
+    def get_cheapest_fillers(collection, rarity_name, wear, stattrak, exclude_items = [])
+      case @filler_strategy
+      when :mixed_high_wear
+        get_mixed_low_wear_fillers(collection, rarity_name, wear, stattrak, exclude_items)
+      else
+        get_plain_cheapest_fillers(rarity_name, wear, stattrak, exclude_items)
+      end
+    end
+
     # Get cheapest items from ANY collection with matching rarity, wear, and stattrak
-    def get_cheapest_fillers(rarity_name, wear, stattrak, exclude_items = [])
+    def get_plain_cheapest_fillers(rarity_name, wear, stattrak, exclude_items = [])
       exclude_ids = exclude_items.map(&:id)
       next_rarity_name = next_rarity(rarity_name)
 
@@ -159,6 +171,30 @@ module Tradeups
               .contractable
               .have_prices
               .order('latest_steam_price ASC')
+              .limit(10)
+              .to_a
+    end
+
+    def get_mixed_low_wear_fillers(base_collection, rarity_name, wear, stattrak, exclude_items = [])
+      exclude_ids      = exclude_items.map(&:id)
+      next_rarity_name = next_rarity(rarity_name)
+      return [] unless next_rarity_name
+
+      valid_collections = Skin.where(rarity: next_rarity_name)
+                              .distinct
+                              .pluck(:collection_name)
+
+      target_wear_value = SkinItem.wears[wear]
+
+      SkinItem.joins(:skin)
+              .where(rarity: SkinItem.rarities[rarity_name], stattrak:)
+              .where(skins: { collection_name: valid_collections })
+              .where.not(skins: { collection_name: base_collection }) # other collections only
+              .where.not(id: exclude_ids)
+              .where('wear < ?', target_wear_value)                   # strictly BETTER wear than base
+              .contractable
+              .have_prices
+              .order(Arel.sql('wear ASC, latest_steam_price ASC'))    # best wear (FN/MW) then cheapest
               .limit(10)
               .to_a
     end
