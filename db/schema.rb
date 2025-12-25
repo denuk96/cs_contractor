@@ -10,7 +10,33 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_06_200226) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_25_170718) do
+  create_table "skin_item_histories", force: :cascade do |t|
+    t.float "buyorderavg"
+    t.float "buyordermedian"
+    t.float "buyorderprice"
+    t.integer "buyordervolume"
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.integer "offervolume"
+    t.float "pricelatest"
+    t.float "pricemedian"
+    t.float "pricemedian24h"
+    t.float "pricemedian30d"
+    t.float "pricemedian7d"
+    t.float "pricemedian90d"
+    t.integer "skin_item_id", null: false
+    t.integer "sold24h"
+    t.integer "sold30d"
+    t.integer "sold7d"
+    t.integer "sold90d"
+    t.integer "soldtoday"
+    t.integer "soldtotal"
+    t.datetime "updated_at", null: false
+    t.index ["skin_item_id", "date"], name: "index_skin_item_histories_on_skin_item_id_and_date", unique: true
+    t.index ["skin_item_id"], name: "index_skin_item_histories_on_skin_item_id"
+  end
+
   create_table "skin_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "last_steam_price_updated_at"
@@ -47,5 +73,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_06_200226) do
     t.index ["object_id"], name: "index_skins_on_object_id", unique: true
   end
 
+  add_foreign_key "skin_item_histories", "skin_items"
   add_foreign_key "skin_items", "skins"
 end

@@ -11,7 +11,7 @@ module Import
         wear = define_wear(price["markethashname"])
         latest_steam_price = (price["pricelatest"] || price["pricelatestsell"] || price["buyordermedian"]).to_f
         latest_steam_order_price = (price["buyorderprice"] || price["buyordermedian"] || price["buyorderavg"]).to_f
-        SkinItem.upsert(
+        skin_item = SkinItem.upsert(
           {  name: price["markethashname"],
              rarity: skin.rarity,
              wear:,
@@ -23,9 +23,35 @@ module Import
              last_steam_price_updated_at: Time.zone.now,
              metadata: price
           },
-          unique_by: :index_skin_items_on_name
+          unique_by: :index_skin_items_on_name,
+          returning: %w[id]
         )
-      end;
+
+        SkinItemHistory.upsert(
+          {
+            skin_item_id: skin_item.first["id"],
+            pricelatest: price["pricelatest"],
+            pricemedian: price["pricemedian"],
+            pricemedian24h: price["pricemedian24h"],
+            pricemedian7d: price["pricemedian7d"],
+            pricemedian30d: price["pricemedian30d"],
+            pricemedian90d: price["pricemedian90d"],
+            sold24h: price["sold24h"],
+            sold7d: price["sold7d"],
+            sold30d: price["sold30d"],
+            sold90d: price["sold90d"],
+            soldtotal: price["soldtotal"],
+            soldtoday: price["soldtoday"],
+            buyordervolume: price["buyordervolume"],
+            buyorderprice: price["buyorderprice"],
+            buyordermedian: price["buyordermedian"],
+            buyorderavg: price["buyorderavg"],
+            offervolume: price["offervolume"],
+            date: Time.zone.today
+          },
+          unique_by: %i[skin_item_id date]
+        )
+      end
     end
 
     def fetch_skinport_data

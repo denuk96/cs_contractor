@@ -55,7 +55,7 @@ namespace :tradeups do
     Rails.logger.level = Logger::INFO
     ActiveRecord::Base.logger = nil
     tradeup = Tradeups::FindProfitableContracts.new(price_fee_multiplier: 0.87,
-                                                    max_cost: 100.0,
+                                                    max_cost: 50.0,
                                                     cheapest_fill_count: 1,
                                                     minimum_outcome_lose: 0,
                                                     min_profit: 1.0,

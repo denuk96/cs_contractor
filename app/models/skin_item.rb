@@ -24,6 +24,7 @@
 
 class SkinItem < ApplicationRecord
   belongs_to :skin
+  has_many :skin_item_histories, dependent: :destroy
 
   serialize :metadata, type: Hash, default: {}, coder: JSON
 
