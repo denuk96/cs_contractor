@@ -17,8 +17,8 @@ namespace :import do
 
     if validate_last_run && File.exist?(last_run_file)
       last_run_time = File.read(last_run_file).to_datetime
-      if last_run_time > 12.hours.ago
-        Rails.logger.info "Prices import skipped. Last run was at #{last_run_time}. Less than 12 hours ago."
+      if last_run_time > 3.hours.ago
+        Rails.logger.info "Prices import skipped. Last run was at #{last_run_time}. Less than 3 hours ago."
         exit 1
       end
     end

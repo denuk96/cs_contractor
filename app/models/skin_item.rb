@@ -68,4 +68,8 @@ class SkinItem < ApplicationRecord
     Rails.logger.info "Updating price for #{name}: #{result.inspect}"
     update(latest_steam_price: result[:lowest_price].delete("$").to_f, last_steam_price_updated_at: Time.zone.now)
   end
+
+  def fetch_order_activity
+    SteamWebApi.new.orders_activity(name)
+  end
 end
