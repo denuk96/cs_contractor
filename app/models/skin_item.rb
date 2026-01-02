@@ -58,6 +58,7 @@ class SkinItem < ApplicationRecord
 
   def self.trending(options = {})
     rarity = options[:rarity]
+    wear = options[:wear]
     min_price = options[:min_price]
     max_price = options[:max_price]
     sort_by = options[:sort_by]
@@ -65,9 +66,12 @@ class SkinItem < ApplicationRecord
     category = options[:category]
     start_date = options[:start_date]
     end_date = options[:end_date]
+    min_offervolume = options[:min_offervolume]
+    max_offervolume = options[:max_offervolume]
+    stattrak = options[:stattrak]
+    souvenir = options[:souvenir]
 
     conditions = []
-    # Only apply trending conditions if the user is not searching for a specific name.
     if name_query.blank?
       conditions.concat([
         "h1.soldtoday > h2.soldtoday",
@@ -82,6 +86,21 @@ class SkinItem < ApplicationRecord
     if rarity.present?
       conditions << "skin_items.rarity = :rarity"
       binds[:rarity] = rarity
+    end
+
+    if wear.present?
+      conditions << "skin_items.wear = :wear"
+      binds[:wear] = wear
+    end
+
+    if stattrak.in?(['true', 'false'])
+      conditions << "skin_items.stattrak = :stattrak"
+      binds[:stattrak] = (stattrak == 'true')
+    end
+
+    if souvenir.in?(['true', 'false'])
+      conditions << "skin_items.souvenir = :souvenir"
+      binds[:souvenir] = (souvenir == 'true')
     end
 
     if min_price.present?
@@ -105,6 +124,16 @@ class SkinItem < ApplicationRecord
       binds[:category] = category
     end
 
+    if min_offervolume.present?
+      conditions << "h1.offervolume >= :min_offervolume"
+      binds[:min_offervolume] = min_offervolume
+    end
+
+    if max_offervolume.present?
+      conditions << "h1.offervolume <= :max_offervolume"
+      binds[:max_offervolume] = max_offervolume
+    end
+
     h1_date_condition = "1=1"
     if end_date.present?
         h1_date_condition = "date <= :end_date"
@@ -124,6 +153,10 @@ class SkinItem < ApplicationRecord
                      "skin_items.latest_steam_price DESC"
                    when 'none'
                      "skin_items.id ASC"
+                   when 'volume_price_divergence'
+                     "(h1.soldtoday - h2.soldtoday) DESC, ABS(h1.pricelatest - h2.pricelatest) ASC"
+                   when 'supply_dry_up'
+                     "(CAST(h1.soldtoday AS REAL) / NULLIF(h1.offervolume, 0)) DESC"
                    else
                      "(h1.soldtoday - h2.soldtoday) DESC"
                    end

@@ -17,8 +17,27 @@
           <%= f.select :rarity, SkinItem.rarities.to_a, { include_blank: "All Rarities", selected: params[:rarity] }, { class: "form-select" } %>
         </div>
         <div class="col-md-3">
+          <%= f.label :wear, "Quality", class: "form-label" %>
+          <%= f.select :wear, SkinItem.wears.to_a, { include_blank: "All Qualities", selected: params[:wear] }, { class: "form-select" } %>
+        </div>
+        <div class="col-md-3">
+          <%= f.label :stattrak, "StatTrak™", class: "form-label" %>
+          <%= f.select :stattrak, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:stattrak] || 'false' }, { class: "form-select" } %>
+        </div>
+        <div class="col-md-3">
+          <%= f.label :souvenir, "Souvenir", class: "form-label" %>
+          <%= f.select :souvenir, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:souvenir] || 'false' }, { class: "form-select" } %>
+        </div>
+        <div class="col-md-3">
           <%= f.label :sort_by, "Sort By", class: "form-label" %>
-          <%= f.select :sort_by, [["Trending Score", ""], ["Price: Low to High", "price_asc"], ["Price: High to Low", "price_desc"], ["No Sorting", "none"]], { selected: params[:sort_by] }, { class: "form-select" } %>
+          <%= f.select :sort_by, [
+            ["Trending Score", ""],
+            ["Price: Low to High", "price_asc"],
+            ["Price: High to Low", "price_desc"],
+            ["Volume/Price Divergence", "volume_price_divergence"],
+            ["Supply Dry Up (Turnover)", "supply_dry_up"],
+            ["No Sorting", "none"]
+          ], { selected: params[:sort_by] }, { class: "form-select" } %>
         </div>
         <div class="col-md-3">
           <%= f.label :min_price, "Min Price", class: "form-label" %>
@@ -27,6 +46,14 @@
         <div class="col-md-3">
           <%= f.label :max_price, "Max Price", class: "form-label" %>
           <%= f.number_field :max_price, value: params[:max_price], class: "form-control", step: 0.01 %>
+        </div>
+        <div class="col-md-3">
+          <%= f.label :min_offervolume, "Min Offer Vol", class: "form-label" %>
+          <%= f.number_field :min_offervolume, value: params[:min_offervolume], class: "form-control" %>
+        </div>
+        <div class="col-md-3">
+          <%= f.label :max_offervolume, "Max Offer Vol", class: "form-label" %>
+          <%= f.number_field :max_offervolume, value: params[:max_offervolume], class: "form-control" %>
         </div>
         <div class="col-md-3">
           <%= f.label :start_date, "Start Date (Compare From)", class: "form-label" %>
@@ -53,9 +80,8 @@
             <th>Rarity</th>
             <th>Wear</th>
             <th>Latest Price</th>
-            <th>Sold Today</th>
+            <th>Sold / Offer Vol (Turnover)</th>
             <th>Buy Order Vol</th>
-            <th>Offer Vol</th>
           </tr>
         </thead>
         <tbody>
@@ -96,16 +122,20 @@
                 <% end %>
               </td>
               <td>
-                <%= item.current_soldtoday %>
-                <span class="badge bg-success"><i class="bi bi-arrow-up"></i> +<%= item.current_soldtoday.to_i - item.prev_soldtoday.to_i %></span>
+                <%= item.current_soldtoday %> / <%= item.current_offervolume %>
+                <% if item.current_offervolume.to_i > 0 %>
+                  <% turnover_ratio = item.current_soldtoday.to_f / item.current_offervolume.to_f %>
+                  <span class="badge bg-info text-dark"><%= number_to_percentage(turnover_ratio * 100, precision: 1) %></span>
+                <% end %>
+                <br>
+                <small class="text-muted">
+                  <span class="badge bg-success"><i class="bi bi-arrow-up"></i> +<%= item.current_soldtoday.to_i - item.prev_soldtoday.to_i %></span>
+                  <span class="badge bg-danger"><i class="bi bi-arrow-down"></i> <%= item.current_offervolume.to_i - item.prev_offervolume.to_i %></span>
+                </small>
               </td>
               <td>
                 <%= item.current_buyordervolume %>
                 <span class="badge bg-success"><i class="bi bi-arrow-up"></i> +<%= item.current_buyordervolume.to_i - item.prev_buyordervolume.to_i %></span>
-              </td>
-              <td>
-                <%= item.current_offervolume %>
-                <span class="badge bg-danger"><i class="bi bi-arrow-down"></i> <%= item.current_offervolume.to_i - item.prev_offervolume.to_i %></span>
               </td>
             </tr>
           <% end %>
