@@ -1,10 +1,9 @@
 module Import
   class Skins
     # https://github.com/ByMykel/CSGO-API
-    ITEM_TYPES = %w[skins stickers keychains crates collectibles agents patches graffiti music_kits highlights].freeze
 
     def call
-      ITEM_TYPES.each do |type|
+      Skin::ITEM_TYPES.each do |type|
         fetch_data(type:).each do |skin|
           skin = skin.is_a?(Hash) ? skin : skin[1]
 

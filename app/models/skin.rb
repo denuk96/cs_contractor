@@ -25,6 +25,7 @@
 #
 
 class Skin < ApplicationRecord
+  ITEM_TYPES = %w[skins stickers keychains crates collectibles agents patches graffiti music_kits highlights].freeze
   serialize :wears, type: Array, default: [], coder: JSON
   serialize :crates, type: Array, default: [], coder: JSON
   serialize :weapon, type: Hash, default: {}, coder: JSON
