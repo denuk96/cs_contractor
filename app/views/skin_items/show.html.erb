@@ -1,5 +1,10 @@
 <div class="container mt-4" data-controller="popover">
-  <h1 class="mb-4"><%= @skin_item.name %></h1>
+  <h1 class="mb-4">
+    <%= @skin_item.name %>
+    <%= link_to "https://steamcommunity.com/market/listings/730/#{ERB::Util.url_encode(@skin_item.name)}", target: "_blank", class: "btn btn-outline-primary btn-sm ms-2" do %>
+      <i class="bi bi-steam"></i> View on Steam
+    <% end %>
+  </h1>
 
   <!-- Analysis Section (Top) -->
   <div class="row mb-5">
@@ -93,6 +98,101 @@
       <% else %>
         <div class="alert alert-info">Not enough data for buy wall analysis.</div>
       <% end %>
+    </div>
+  </div>
+
+  <!-- Item Details Section -->
+  <div class="row mb-5">
+    <div class="col-md-12">
+      <h3>Item Details</h3>
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <dl class="row mb-0">
+                <dt class="col-sm-4">Collection</dt>
+                <dd class="col-sm-8"><%= @skin_item.skin&.collection_name || '-' %></dd>
+
+                <dt class="col-sm-4">Rarity</dt>
+                <dd class="col-sm-8">
+                  <% if @skin_item.rarity.present? %>
+                    <%
+                      rarity_color = case @skin_item.rarity
+                        when "Consumer Grade" then "bg-secondary"
+                        when "Industrial Grade" then "bg-info text-dark"
+                        when "Mid-Spec Grade" then "bg-primary"
+                        when "Restricted" then "bg-purple text-white"
+                        when "Classified" then "bg-pink text-dark"
+                        when "Covert" then "bg-danger"
+                        when "Extraordinary" then "bg-warning text-dark"
+                        when "Contraband" then "bg-warning text-dark"
+                        else "bg-secondary"
+                      end
+
+                      style = case @skin_item.rarity
+                        when "Restricted" then "background-color: #8847ff !important;"
+                        when "Classified" then "background-color: #d32ce6 !important;"
+                        when "Extraordinary" then "background-color: #eb4b4b !important;"
+                        else ""
+                      end
+                    %>
+                    <span class="badge <%= rarity_color %>" style="<%= style %>"><%= @skin_item.rarity %></span>
+                  <% else %>
+                    -
+                  <% end %>
+                </dd>
+
+                <dt class="col-sm-4">Wear</dt>
+                <dd class="col-sm-8"><%= @skin_item.wear || '-' %></dd>
+
+                <dt class="col-sm-4">Current Price</dt>
+                <dd class="col-sm-8 fw-bold"><%= number_to_currency(@skin_item.latest_steam_price) %></dd>
+              </dl>
+            </div>
+            <div class="col-md-6">
+              <dl class="row mb-0">
+                <dt class="col-sm-4">Turnover Rate</dt>
+                <dd class="col-sm-8">
+                  <%= number_to_percentage(@current_turnover, precision: 1) %>
+                  <% if @current_turnover > 50 %>
+                    <span class="badge bg-danger">Moon Zone</span>
+                  <% elsif @current_turnover > 20 %>
+                    <span class="badge bg-warning text-dark">Squeeze Zone</span>
+                  <% elsif @current_turnover > 5 %>
+                    <span class="badge bg-success">Organic Zone</span>
+                  <% else %>
+                    <span class="badge bg-secondary">Dead Zone</span>
+                  <% end %>
+                </dd>
+
+                <dt class="col-sm-4">Buy Order Vol</dt>
+                <dd class="col-sm-8">
+                  <% latest_history = @skin_item.skin_item_histories.order(date: :asc).last %>
+                  <% if latest_history&.buyordervolume.present? %>
+                    <%= latest_history.buyordervolume %>
+                  <% else %>
+                    -
+                  <% end %>
+                </dd>
+
+                <dt class="col-sm-4">Buy Wall Ratio</dt>
+                <dd class="col-sm-8">
+                  <% if @buy_wall_ratio.present? %>
+                    <span class="<%= 'text-danger fw-bold' if @buy_wall_ratio >= 50 %>">
+                      <%= number_with_precision(@buy_wall_ratio, precision: 2) %>x
+                    </span>
+                    <% if @buy_wall_ratio >= 50 %>
+                      <span class="badge bg-danger">PUMP ALERT</span>
+                    <% end %>
+                  <% else %>
+                    -
+                  <% end %>
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
