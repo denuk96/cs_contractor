@@ -6,7 +6,10 @@ export default class extends Controller {
   connect() {
     const popoverTriggerList = [].slice.call(this.element.querySelectorAll('[data-bs-toggle="popover"]'))
     popoverTriggerList.map(function (popoverTriggerEl) {
-      return new Popover(popoverTriggerEl)
+      return new Popover(popoverTriggerEl, {
+        html: true,
+        trigger: 'hover'
+      })
     })
   }
 }

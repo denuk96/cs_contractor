@@ -167,8 +167,8 @@ class SkinItem < ApplicationRecord
 
     sql = <<-SQL
       WITH filtered_items AS (
-        SELECT skin_items.* FROM skin_items
-        #{category_join}
+        SELECT skin_items.*, skins.collection_name FROM skin_items
+        JOIN skins ON skins.id = skin_items.skin_id
         WHERE #{primary_where}
       )
       SELECT

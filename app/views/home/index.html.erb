@@ -78,6 +78,7 @@
         <thead class="table-dark">
           <tr>
             <th>Name</th>
+            <th>Collection</th>
             <th>Rarity</th>
             <th>Wear</th>
             <th>
@@ -86,15 +87,15 @@
             </th>
             <th>
               Sold / Offer Vol (Turnover)
-              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Turnover Rate" data-bs-content="The percentage of listed items (Offer Vol) that were sold in the last 24 hours. A high percentage can indicate a 'supply squeeze'."></i>
+              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Turnover Rate (Supply Squeeze)" data-bs-content="Formula: Sold (24h) / Offer Vol. <br>Measures how fast supply is being eaten. <br><b>0-5% (Dead):</b> Too much supply. <br><b>5-15% (Organic):</b> Healthy demand. <br><b>20-50% (Squeeze):</b> High alert! Supply vanishing. <br><b>>50% (Moon):</b> Market broken, extreme volatility."></i>
             </th>
             <th>
               Buy Order Vol
-              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Buy Order Volume" data-bs-content="The total number of active buy orders. The badge shows the change over the selected period."></i>
+              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Buy Order Volume" data-bs-content="The total number of active buy orders. <br>The badge shows the change over the selected period. <br>Rising buy orders with flat price can indicate accumulation."></i>
             </th>
             <th>
               Buy Wall
-              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Buy Wall Ratio" data-bs-content="The ratio of Buy Orders to Offer Volume. A high ratio (>50x) can indicate a 'buy wall' that prevents the price from dropping."></i>
+              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Buy Wall Ratio" data-bs-content="Formula: Buy Orders / Offer Vol. <br><b>5x-10x:</b> Normal support. <br><b>>50x (PUMP ALERT):</b> Someone has cornered the market. The massive buy wall prevents the price from dropping."></i>
             </th>
           </tr>
         </thead>
@@ -102,7 +103,7 @@
           <% @trending_items.each do |item| %>
             <tr>
               <td>
-                <%= link_to skin_item_path(item), class: "me-2" do %>
+                <%= link_to skin_item_path(item), class: "me-2", target: "_blank" do %>
                   <i class="bi bi-graph-up"></i>
                 <% end %>
                 <%= link_to item.name, "https://steamcommunity.com/market/listings/730/#{ERB::Util.url_encode(item.name)}", target: "_blank", class: "text-decoration-none fw-bold" %>
@@ -119,8 +120,36 @@
                 <% end %>
               </td>
               <td>
+                <% if item.collection_name.present? %>
+                  <%= item.collection_name %>
+                <% else %>
+                  <span class="text-muted">-</span>
+                <% end %>
+              </td>
+              <td>
                 <% if item.rarity.present? %>
-                  <span class="badge bg-secondary"><%= item.rarity %></span>
+                  <%
+                    rarity_color = case item.rarity
+                      when "Consumer Grade" then "bg-secondary" # Grey
+                      when "Industrial Grade" then "bg-info text-dark" # Light Blue
+                      when "Mid-Spec Grade" then "bg-primary" # Blue
+                      when "Restricted" then "bg-purple text-white" # Purple (custom class needed or use inline style)
+                      when "Classified" then "bg-pink text-dark" # Pink (custom class needed)
+                      when "Covert" then "bg-danger" # Red
+                      when "Extraordinary" then "bg-warning text-dark" # Gold
+                      when "Contraband" then "bg-warning text-dark" # Gold/Orange
+                      else "bg-secondary"
+                    end
+
+                    # Inline styles for colors not in standard Bootstrap
+                    style = case item.rarity
+                      when "Restricted" then "background-color: #8847ff !important;"
+                      when "Classified" then "background-color: #d32ce6 !important;"
+                      when "Extraordinary" then "background-color: #eb4b4b !important;" # Red for gloves/knives usually, or gold
+                      else ""
+                    end
+                  %>
+                  <span class="badge <%= rarity_color %>" style="<%= style %>"><%= item.rarity %></span>
                 <% else %>
                   <span class="text-muted">-</span>
                 <% end %>
@@ -179,10 +208,20 @@
                   <%= item.current_buyordervolume %>
                   <% if item.prev_buyordervolume.present? %>
                     <% diff = item.current_buyordervolume.to_i - item.prev_buyordervolume.to_i %>
+                    <% if item.prev_buyordervolume.to_i > 0 %>
+                      <% percent_change = (diff.to_f / item.prev_buyordervolume.to_f) * 100 %>
+                    <% else %>
+                      <% percent_change = 0 %>
+                    <% end %>
+
                     <% if diff > 0 %>
-                      <span class="badge bg-success"><i class="bi bi-arrow-up"></i> +<%= diff %></span>
+                      <span class="badge bg-success">
+                        <i class="bi bi-arrow-up"></i> +<%= diff %> (<%= number_to_percentage(percent_change, precision: 1) %>)
+                      </span>
                     <% elsif diff < 0 %>
-                      <span class="badge bg-danger"><i class="bi bi-arrow-down"></i> <%= diff %></span>
+                      <span class="badge bg-danger">
+                        <i class="bi bi-arrow-down"></i> <%= diff %> (<%= number_to_percentage(percent_change, precision: 1) %>)
+                      </span>
                     <% else %>
                       <span class="badge bg-secondary">=</span>
                     <% end %>

@@ -1,8 +1,17 @@
 module Import
   class SkinItems
+    INVALID_NAMES = [
+      "Sticker Slab",
+      "Case Key",
+      "Music Kit",
+      "Capsule Key"
+    ].freeze
+
     def fetch_webapi_data
       json = SteamWebApi.new.fetch_data(game: "cs2")
       json.each do |price|
+        next if invalid_name?(price["markethashname"])
+
         skin = find_skin(price["markethashname"])
         if skin.nil?
           Rails.logger.warn("Could not find skin for #{price["markethashname"]}")
@@ -57,6 +66,8 @@ module Import
     def fetch_skinport_data
       json = SkinportApi.new.fetch_data
       json.each do |price|
+        next if invalid_name?(price["market_hash_name"])
+
         skin = find_skin(price["market_hash_name"])
         if skin.nil?
           Rails.logger.warn("Could not find skin for #{price["market_hash_name"]}")
@@ -95,6 +106,10 @@ module Import
 
     def define_wear(name)
       name[/\(([^)]+)\)/, 1]
+    end
+
+    def invalid_name?(name)
+      INVALID_NAMES.any? { |invalid| name.include?(invalid) }
     end
   end
 end
