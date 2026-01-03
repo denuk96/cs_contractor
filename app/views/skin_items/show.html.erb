@@ -1,0 +1,148 @@
+<div class="container mt-4" data-controller="popover">
+  <h1 class="mb-4"><%= @skin_item.name %></h1>
+
+  <div class="row">
+    <div class="col-md-12 mb-4">
+      <h2>Market History</h2>
+      <%= line_chart @chart_data, library: {
+        scales: {
+          'price-axis': {
+            type: 'linear',
+            position: 'left',
+            ticks: {
+              callback: "function(value) { return '$' + value.toLocaleString(); }"
+            },
+            title: {
+              display: true,
+              text: 'Price (USD)'
+            }
+          },
+          'volume-axis': {
+            type: 'linear',
+            position: 'right',
+            grid: {
+              drawOnChartArea: false
+            },
+            ticks: {
+              callback: "function(value) { return value.toLocaleString(); }"
+            },
+            title: {
+              display: true,
+              text: 'Volume'
+            }
+          },
+          'turnover-axis': {
+            type: 'linear',
+            position: 'right',
+            grid: {
+              drawOnChartArea: false
+            },
+            ticks: {
+              callback: "function(value) { return value + '%'; }"
+            },
+            title: {
+              display: true,
+              text: 'Turnover Rate'
+            }
+          }
+        }
+      } %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4">
+      <h4>
+        Volume/Price Divergence
+        <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="What is this?" data-bs-content="This signal looks for a spike in sales volume while the price stays flat. It's a strong indicator that a manipulator is quietly buying up supply without letting the price rise."></i>
+      </h4>
+      <% if @volume_change.present? && @price_change.present? %>
+        <div class="card h-100">
+          <div class="card-header">Week-over-Week Change</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <strong>Sales Volume (7d):</strong>
+              <span class="badge bg-<%= @volume_change > 0 ? 'success' : 'danger' %> float-end">
+                <%= number_to_percentage(@volume_change, precision: 2) %>
+              </span>
+            </li>
+            <li class="list-group-item">
+              <strong>Price:</strong>
+              <span class="badge bg-<%= @price_change > 0 ? 'success' : 'danger' %> float-end">
+                <%= number_to_percentage(@price_change, precision: 2) %>
+              </span>
+            </li>
+          </ul>
+          <div class="card-body">
+            <% if @volume_change > 20 && @price_change.abs < 5 %>
+              <h5 class="card-title text-danger">Divergence Detected (Strong Signal)</h5>
+              <p class="card-text">Sales volume is spiking, but the price is remaining flat. This is a strong indicator of accumulation.</p>
+            <% else %>
+              <h5 class="card-title text-success">Normal Market Activity</h5>
+              <p class="card-text">No significant divergence detected.</p>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <div class="alert alert-info">Not enough data for divergence analysis.</div>
+      <% end %>
+    </div>
+
+    <div class="col-md-4">
+      <h4>
+        Supply "Dry Up" (Turnover)
+        <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="What is this?" data-bs-content="This measures how fast the available supply is being sold. A high turnover rate means demand is eating up supply, which can lead to a price spike (a 'squeeze')."></i>
+      </h4>
+      <div class="card h-100">
+        <div class="card-header">
+          Current Turnover Rate: <strong><%= number_to_percentage(@current_turnover, precision: 2) %></strong>
+        </div>
+        <div class="card-body">
+          <% if @current_turnover <= 5 %>
+            <h5 class="card-title text-muted">"Dead" Zone (0-5%)</h5>
+            <p class="card-text">Supply is massive; demand is low. Very hard to manipulate.</p>
+          <% elsif @current_turnover <= 15 %>
+            <h5 class="card-title text-success">"Organic" Zone (5-15%)</h5>
+            <p class="card-text">Healthy activity. Watch for a slow rise while price is stable (accumulation).</p>
+          <% elsif @current_turnover <= 50 %>
+            <h5 class="card-title text-warning">"Squeeze" Zone (20-50%)</h5>
+            <p class="card-text">High Alert. A large portion of supply is vanishing daily. Potential for artificial buying.</p>
+          <% else %>
+            <h5 class="card-title text-danger">"Moon" Zone (>50%)</h5>
+            <p class="card-text">The market is broken. Demand is outpacing supply. Extreme volatility is likely.</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <h4>
+        "Buy Wall" Ratio
+        <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="What is this?" data-bs-content="This is the ratio of buy orders to sell listings. A high ratio (>50x) indicates a 'buy wall' where a large number of buy orders prevents the price from falling, suggesting someone has cornered the market."></i>
+      </h4>
+      <% if @buy_wall_ratio.present? %>
+        <div class="card h-100">
+          <div class="card-header">
+            Wall Strength:
+            <strong class="<%= 'text-danger' if @buy_wall_ratio > 50 %>">
+              <%= number_with_precision(@buy_wall_ratio, precision: 2) %>x
+            </strong>
+          </div>
+          <div class="card-body">
+            <% if @buy_wall_ratio <= 10 %>
+              <h5 class="card-title text-success">Normal (5x-10x)</h5>
+              <p class="card-text">A healthy number of buy orders are present, providing a stable price floor.</p>
+            <% else %>
+              <h5 class="card-title text-danger">PUMP ALERT (>50x)</h5>
+              <p class="card-text">An extreme number of buy orders compared to sell listings. The market may be cornered.</p>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <div class="alert alert-info">Not enough data for buy wall analysis.</div>
+      <% end %>
+    </div>
+  </div>
+
+  <%= link_to "Back to Trending", root_path, class: "btn btn-secondary mt-4" %>
+</div>

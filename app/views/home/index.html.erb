@@ -1,4 +1,4 @@
-<div class="container mt-4">
+<div class="container mt-4" data-controller="popover">
   <h1 class="mb-4">Trending Skin Items</h1>
 
   <div class="card mb-4">
@@ -36,6 +36,7 @@
             ["Price: High to Low", "price_desc"],
             ["Volume/Price Divergence", "volume_price_divergence"],
             ["Supply Dry Up (Turnover)", "supply_dry_up"],
+            ["Buy Order Increase", "buy_order_increase"],
             ["No Sorting", "none"]
           ], { selected: params[:sort_by] }, { class: "form-select" } %>
         </div>
@@ -79,20 +80,43 @@
             <th>Name</th>
             <th>Rarity</th>
             <th>Wear</th>
-            <th>Latest Price</th>
-            <th>Sold / Offer Vol (Turnover)</th>
-            <th>Buy Order Vol</th>
+            <th>
+              Latest Price
+              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Price Change" data-bs-content="Shows the price change between the two comparison dates."></i>
+            </th>
+            <th>
+              Sold / Offer Vol (Turnover)
+              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Turnover Rate" data-bs-content="The percentage of listed items (Offer Vol) that were sold in the last 24 hours. A high percentage can indicate a 'supply squeeze'."></i>
+            </th>
+            <th>
+              Buy Order Vol
+              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Buy Order Volume" data-bs-content="The total number of active buy orders. The badge shows the change over the selected period."></i>
+            </th>
+            <th>
+              Buy Wall
+              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Buy Wall Ratio" data-bs-content="The ratio of Buy Orders to Offer Volume. A high ratio (>50x) can indicate a 'buy wall' that prevents the price from dropping."></i>
+            </th>
           </tr>
         </thead>
         <tbody>
           <% @trending_items.each do |item| %>
             <tr>
               <td>
+                <%= link_to skin_item_path(item), class: "me-2" do %>
+                  <i class="bi bi-graph-up"></i>
+                <% end %>
                 <%= link_to item.name, "https://steamcommunity.com/market/listings/730/#{ERB::Util.url_encode(item.name)}", target: "_blank", class: "text-decoration-none fw-bold" %>
-                <br>
-                <small class="text-muted">
-                  Comparing <%= item.prev_date %> vs <%= item.current_date %>
-                </small>
+                <% if item.prev_date.present? %>
+                  <br>
+                  <small class="text-muted">
+                    Comparing <%= item.prev_date %> vs <%= item.current_date %>
+                  </small>
+                <% elsif item.current_date.present? %>
+                  <br>
+                  <small class="text-muted">
+                    Data for <%= item.current_date %>
+                  </small>
+                <% end %>
               </td>
               <td>
                 <% if item.rarity.present? %>
@@ -122,20 +146,60 @@
                 <% end %>
               </td>
               <td>
-                <%= item.current_soldtoday %> / <%= item.current_offervolume %>
-                <% if item.current_offervolume.to_i > 0 %>
-                  <% turnover_ratio = item.current_soldtoday.to_f / item.current_offervolume.to_f %>
-                  <span class="badge bg-info text-dark"><%= number_to_percentage(turnover_ratio * 100, precision: 1) %></span>
+                <% if item.current_soldtoday.present? %>
+                  <%= item.current_soldtoday %> / <%= item.current_offervolume %>
+                  <% if item.current_offervolume.to_i > 0 %>
+                    <% turnover_ratio = item.current_soldtoday.to_f / item.current_offervolume.to_f %>
+                    <span class="badge bg-info text-dark"><%= number_to_percentage(turnover_ratio * 100, precision: 1) %></span>
+                  <% end %>
+                  <% if item.prev_soldtoday.present? %>
+                    <br>
+                    <small class="text-muted">
+                      <% sold_diff = item.current_soldtoday.to_i - item.prev_soldtoday.to_i %>
+                      <% if sold_diff > 0 %>
+                        <span class="badge bg-success">Sold: +<%= sold_diff %></span>
+                      <% elsif sold_diff < 0 %>
+                        <span class="badge bg-danger">Sold: <%= sold_diff %></span>
+                      <% end %>
+
+                      <% offer_diff = item.current_offervolume.to_i - item.prev_offervolume.to_i %>
+                      <% if offer_diff < 0 %>
+                        <span class="badge bg-success">Offer: <%= offer_diff %></span>
+                      <% elsif offer_diff > 0 %>
+                        <span class="badge bg-danger">Offer: +<%= offer_diff %></span>
+                      <% end %>
+                    </small>
+                  <% end %>
+                <% else %>
+                  <span class="text-muted">-</span>
                 <% end %>
-                <br>
-                <small class="text-muted">
-                  <span class="badge bg-success"><i class="bi bi-arrow-up"></i> +<%= item.current_soldtoday.to_i - item.prev_soldtoday.to_i %></span>
-                  <span class="badge bg-danger"><i class="bi bi-arrow-down"></i> <%= item.current_offervolume.to_i - item.prev_offervolume.to_i %></span>
-                </small>
               </td>
               <td>
-                <%= item.current_buyordervolume %>
-                <span class="badge bg-success"><i class="bi bi-arrow-up"></i> +<%= item.current_buyordervolume.to_i - item.prev_buyordervolume.to_i %></span>
+                <% if item.current_buyordervolume.present? %>
+                  <%= item.current_buyordervolume %>
+                  <% if item.prev_buyordervolume.present? %>
+                    <% diff = item.current_buyordervolume.to_i - item.prev_buyordervolume.to_i %>
+                    <% if diff > 0 %>
+                      <span class="badge bg-success"><i class="bi bi-arrow-up"></i> +<%= diff %></span>
+                    <% elsif diff < 0 %>
+                      <span class="badge bg-danger"><i class="bi bi-arrow-down"></i> <%= diff %></span>
+                    <% else %>
+                      <span class="badge bg-secondary">=</span>
+                    <% end %>
+                  <% end %>
+                <% else %>
+                  <span class="text-muted">-</span>
+                <% end %>
+              </td>
+              <td>
+                <% if item.current_buyordervolume.present? && item.current_offervolume.to_i > 0 %>
+                  <% buy_wall_ratio = item.current_buyordervolume.to_f / item.current_offervolume.to_f %>
+                  <span class="<%= 'text-danger fw-bold' if buy_wall_ratio >= 50 %>">
+                    <%= number_with_precision(buy_wall_ratio, precision: 2) %>x
+                  </span>
+                <% else %>
+                  <span class="text-muted">-</span>
+                <% end %>
               </td>
             </tr>
           <% end %>

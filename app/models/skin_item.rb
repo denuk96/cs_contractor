@@ -71,117 +71,122 @@ class SkinItem < ApplicationRecord
     stattrak = options[:stattrak]
     souvenir = options[:souvenir]
 
-    conditions = []
-    if name_query.blank?
-      conditions.concat([
-        "h1.soldtoday > h2.soldtoday",
-        "h1.buyordervolume > h2.buyordervolume",
-        "h1.offervolume < h2.offervolume"
-      ])
-    end
-
     binds = {}
-    joins = []
-
+    
+    primary_conditions = []
     if rarity.present?
-      conditions << "skin_items.rarity = :rarity"
+      primary_conditions << "skin_items.rarity = :rarity"
       binds[:rarity] = rarity
     end
-
     if wear.present?
-      conditions << "skin_items.wear = :wear"
+      primary_conditions << "skin_items.wear = :wear"
       binds[:wear] = wear
     end
-
     if stattrak.in?(['true', 'false'])
-      conditions << "skin_items.stattrak = :stattrak"
+      primary_conditions << "skin_items.stattrak = :stattrak"
       binds[:stattrak] = (stattrak == 'true')
     end
-
     if souvenir.in?(['true', 'false'])
-      conditions << "skin_items.souvenir = :souvenir"
+      primary_conditions << "skin_items.souvenir = :souvenir"
       binds[:souvenir] = (souvenir == 'true')
     end
-
     if min_price.present?
-      conditions << "skin_items.latest_steam_price >= :min_price"
+      primary_conditions << "skin_items.latest_steam_price >= :min_price"
       binds[:min_price] = min_price
     end
-
     if max_price.present?
-      conditions << "skin_items.latest_steam_price <= :max_price"
+      primary_conditions << "skin_items.latest_steam_price <= :max_price"
       binds[:max_price] = max_price
     end
-
     if name_query.present?
-      conditions << "skin_items.name LIKE :name"
+      primary_conditions << "skin_items.name LIKE :name"
       binds[:name] = "%#{name_query}%"
     end
 
+    category_join = ""
     if category.present?
-      joins << "JOIN skins ON skins.id = skin_items.skin_id"
-      conditions << "skins.category = :category"
+      category_join = "JOIN skins ON skins.id = skin_items.skin_id"
+      primary_conditions << "skins.category = :category"
       binds[:category] = category
     end
 
-    if min_offervolume.present?
-      conditions << "h1.offervolume >= :min_offervolume"
-      binds[:min_offervolume] = min_offervolume
+    primary_where = primary_conditions.empty? ? "1=1" : primary_conditions.join(' AND ')
+
+    if end_date.present?
+      h1_date_subquery = "(SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = fi.id AND date <= :end_date)"
+      binds[:end_date] = end_date
+    else
+      h1_date_subquery = "(SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = fi.id)"
     end
 
+    if start_date.present?
+      h2_date_subquery = "(SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = fi.id AND date <= :start_date)"
+      binds[:start_date] = start_date
+    else
+      # Default to oldest vs newest
+      h2_date_subquery = "(SELECT MIN(date) FROM skin_item_histories WHERE skin_item_id = fi.id)"
+    end
+
+    final_where_conditions = []
+    if name_query.blank?
+      final_where_conditions << "h1.id IS NOT NULL AND h2.id IS NOT NULL"
+      if sort_by.blank?
+        final_where_conditions << "h1.soldtoday > h2.soldtoday"
+        final_where_conditions << "h1.buyordervolume > h2.buyordervolume"
+        final_where_conditions << "h1.offervolume < h2.offervolume"
+      end
+    end
+
+    if min_offervolume.present?
+      final_where_conditions << "h1.offervolume >= :min_offervolume"
+      binds[:min_offervolume] = min_offervolume
+    end
     if max_offervolume.present?
-      conditions << "h1.offervolume <= :max_offervolume"
+      final_where_conditions << "h1.offervolume <= :max_offervolume"
       binds[:max_offervolume] = max_offervolume
     end
 
-    h1_date_condition = "1=1"
-    if end_date.present?
-        h1_date_condition = "date <= :end_date"
-        binds[:end_date] = end_date
-    end
-
-    h2_date_condition = "date < h1.date"
-    if start_date.present?
-        h2_date_condition = "date <= :start_date"
-        binds[:start_date] = start_date
-    end
+    final_where = final_where_conditions.empty? ? "" : "WHERE #{final_where_conditions.join(' AND ')}"
 
     order_clause = case sort_by
                    when 'price_asc'
-                     "skin_items.latest_steam_price ASC"
+                     "latest_steam_price ASC"
                    when 'price_desc'
-                     "skin_items.latest_steam_price DESC"
+                     "latest_steam_price DESC"
                    when 'none'
-                     "skin_items.id ASC"
+                     "id ASC"
                    when 'volume_price_divergence'
-                     "(h1.soldtoday - h2.soldtoday) DESC, ABS(h1.pricelatest - h2.pricelatest) ASC"
+                     "(current_soldtoday - prev_soldtoday) DESC, ABS(current_price - prev_price) ASC"
                    when 'supply_dry_up'
-                     "(CAST(h1.soldtoday AS REAL) / NULLIF(h1.offervolume, 0)) DESC"
+                     "(CAST(current_soldtoday AS REAL) / NULLIF(current_offervolume, 0)) DESC"
+                   when 'buy_order_increase'
+                     "(current_buyordervolume - prev_buyordervolume) DESC"
                    else
-                     "(h1.soldtoday - h2.soldtoday) DESC"
+                     "(current_soldtoday - prev_soldtoday) DESC"
                    end
 
-    where_clause = conditions.present? ? conditions.join(' AND ') : "1=1"
-
     sql = <<-SQL
-      SELECT skin_items.*,
-             h1.date as current_date,
-             h2.date as prev_date,
-             h1.soldtoday as current_soldtoday,
-             h1.buyordervolume as current_buyordervolume,
-             h1.offervolume as current_offervolume,
-             h1.pricelatest as current_price,
-             h2.pricelatest as prev_price,
-             h2.soldtoday as prev_soldtoday,
-             h2.buyordervolume as prev_buyordervolume,
-             h2.offervolume as prev_offervolume
-      FROM skin_items
-      JOIN skin_item_histories h1 ON h1.skin_item_id = skin_items.id
-      JOIN skin_item_histories h2 ON h2.skin_item_id = skin_items.id
-      #{joins.join(' ')}
-      WHERE h1.date = (SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = skin_items.id AND #{h1_date_condition})
-      AND h2.date = (SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = skin_items.id AND #{h2_date_condition})
-      AND #{where_clause}
+      WITH filtered_items AS (
+        SELECT skin_items.* FROM skin_items
+        #{category_join}
+        WHERE #{primary_where}
+      )
+      SELECT
+        fi.*,
+        h1.date as current_date,
+        h2.date as prev_date,
+        h1.soldtoday as current_soldtoday,
+        h1.buyordervolume as current_buyordervolume,
+        h1.offervolume as current_offervolume,
+        h1.pricelatest as current_price,
+        h2.pricelatest as prev_price,
+        h2.soldtoday as prev_soldtoday,
+        h2.buyordervolume as prev_buyordervolume,
+        h2.offervolume as prev_offervolume
+      FROM filtered_items fi
+      LEFT JOIN skin_item_histories h1 ON h1.skin_item_id = fi.id AND h1.date = #{h1_date_subquery}
+      LEFT JOIN skin_item_histories h2 ON h2.skin_item_id = fi.id AND h2.date = #{h2_date_subquery}
+      #{final_where}
       ORDER BY #{order_clause}
       LIMIT 50
     SQL
