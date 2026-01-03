@@ -1,56 +1,8 @@
 <div class="container mt-4" data-controller="popover">
   <h1 class="mb-4"><%= @skin_item.name %></h1>
 
-  <div class="row">
-    <div class="col-md-12 mb-4">
-      <h2>Market History</h2>
-      <%= line_chart @chart_data, library: {
-        scales: {
-          'price-axis': {
-            type: 'linear',
-            position: 'left',
-            ticks: {
-              callback: "function(value) { return '$' + value.toLocaleString(); }"
-            },
-            title: {
-              display: true,
-              text: 'Price (USD)'
-            }
-          },
-          'volume-axis': {
-            type: 'linear',
-            position: 'right',
-            grid: {
-              drawOnChartArea: false
-            },
-            ticks: {
-              callback: "function(value) { return value.toLocaleString(); }"
-            },
-            title: {
-              display: true,
-              text: 'Volume'
-            }
-          },
-          'turnover-axis': {
-            type: 'linear',
-            position: 'right',
-            grid: {
-              drawOnChartArea: false
-            },
-            ticks: {
-              callback: "function(value) { return value + '%'; }"
-            },
-            title: {
-              display: true,
-              text: 'Turnover Rate'
-            }
-          }
-        }
-      } %>
-    </div>
-  </div>
-
-  <div class="row">
+  <!-- Analysis Section (Top) -->
+  <div class="row mb-5">
     <div class="col-md-4">
       <h4>
         Volume/Price Divergence
@@ -144,5 +96,105 @@
     </div>
   </div>
 
-  <%= link_to "Back to Trending", root_path, class: "btn btn-secondary mt-4" %>
+  <!-- Charts Section -->
+  <div class="row">
+    <!-- 1. Accumulation Dashboard -->
+    <div class="col-md-12 mb-5">
+      <h3>
+        1. The "Accumulation" Dashboard (Early Warning)
+        <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="The X-Cross Pattern" data-bs-content="Look for the 'X-Cross': Offer Volume (Supply) trends DOWN while Buy Orders (Demand) trend UP. If the Price stays FLAT during this, it's a strong signal that someone is secretly absorbing supply."></i>
+      </h3>
+      <%= line_chart @accumulation_data, library: {
+        scales: {
+          'volume-axis': {
+            type: 'linear',
+            position: 'left',
+            title: { display: true, text: 'Volume' }
+          },
+          'price-axis': {
+            type: 'linear',
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: { callback: "function(value) { return '$' + value.toLocaleString(); }" },
+            title: { display: true, text: 'Price (USD)' }
+          }
+        }
+      } %>
+    </div>
+
+    <!-- 2. Elasticity Dashboard -->
+    <div class="col-md-12 mb-5">
+      <h3>
+        2. The "Elasticity" Dashboard (The Trigger)
+        <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="The Tension Spike" data-bs-content="Look for the 'Tension' Spike: The Buy Wall Ratio spikes massively (e.g., >50x) while the Turnover Rate is moderate. If Turnover then jumps, the price has nowhere to go but up."></i>
+      </h3>
+      <%= line_chart @elasticity_data, library: {
+        scales: {
+          'ratio-axis': {
+            type: 'linear',
+            position: 'left',
+            ticks: { callback: "function(value) { return value.toFixed(1) + 'x'; }" },
+            title: { display: true, text: 'Buy Wall Ratio' }
+          },
+          'percent-axis': {
+            type: 'linear',
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: { callback: "function(value) { return value.toFixed(1) + '%'; }" },
+            title: { display: true, text: 'Turnover Rate (%)' }
+          }
+        }
+      } %>
+    </div>
+
+    <!-- 3. Fakeout Dashboard -->
+    <div class="col-md-12 mb-5">
+      <h3>
+        3. The "Fakeout" Dashboard (The Trap)
+        <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="The Hollow Volume" data-bs-content="Look for 'Hollow' Volume: Sold Volume is exploding, but the Price is barely moving. This is a classic sign of wash trading to create fake hype. Real demand always moves price."></i>
+      </h3>
+      <%= line_chart @fakeout_data, library: {
+        scales: {
+          'volume-axis': {
+            type: 'linear',
+            position: 'left',
+            title: { display: true, text: 'Sold Volume' }
+          },
+          'price-axis': {
+            type: 'linear',
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: { callback: "function(value) { return '$' + value.toLocaleString(); }" },
+            title: { display: true, text: 'Price (USD)' }
+          }
+        }
+      } %>
+    </div>
+
+    <!-- 4. The Squeeze Chart (God Mode) -->
+    <div class="col-md-12 mb-5">
+      <h3>
+        4. The "Squeeze" Chart (God Mode)
+        <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="The 'Go' Signal" data-bs-content="The 'Go' Signal: When the Green Line (Buy Wall) is at an All-Time High and the Red Line (Supply) is at an All-Time Low, the next bar of Grey (Volume) will cause a vertical price spike."></i>
+      </h3>
+      <%= line_chart @squeeze_data, library: {
+        scales: {
+          'ratio-axis': {
+            type: 'linear',
+            position: 'left',
+            ticks: { callback: "function(value) { return value.toFixed(1) + 'x'; }" },
+            title: { display: true, text: 'Buy Wall Ratio' }
+          },
+          'volume-axis': {
+            type: 'linear',
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: 'Volume' }
+          }
+        }
+      } %>
+    </div>
+  </div>
+
+  <%= link_to "Back to Trending", root_path, class: "btn btn-secondary mb-5" %>
 </div>

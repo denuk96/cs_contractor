@@ -4,12 +4,25 @@ class SkinItemsController < ApplicationController
     history = @skin_item.skin_item_histories.order(date: :asc)
     latest_history = history.last
 
-    # Turnover Rate
+    # Turnover Rate History
     @turnover_history = history.map do |h|
       turnover = h.offervolume.to_i > 0 ? (h.soldtoday.to_f / h.offervolume.to_f) * 100 : 0
       [h.date, turnover]
     end
     @current_turnover = @turnover_history.last&.second.to_f
+
+    # Buy Wall Ratio History
+    @buy_wall_history = history.map do |h|
+      ratio = h.offervolume.to_i > 0 ? (h.buyordervolume.to_f / h.offervolume.to_f) : 0
+      [h.date, ratio]
+    end
+    
+    # Current Buy Wall Ratio
+    if latest_history&.offervolume.to_i > 0
+      @buy_wall_ratio = latest_history.buyordervolume.to_f / latest_history.offervolume.to_f
+    else
+      @buy_wall_ratio = nil
+    end
 
     # Volume/Price Divergence
     if history.length >= 8
@@ -21,20 +34,30 @@ class SkinItemsController < ApplicationController
       @price_change = nil
     end
 
-    # Buy Wall
-    if latest_history&.offervolume.to_i > 0
-      @buy_wall_ratio = latest_history.buyordervolume.to_f / latest_history.offervolume.to_f
-    else
-      @buy_wall_ratio = nil
-    end
+    # 1. Accumulation Dashboard Data
+    @accumulation_data = [
+      { name: 'Offer Volume (Supply)', data: history.pluck(:date, :offervolume), yAxis: 'volume-axis' },
+      { name: 'Buy Orders (Demand)', data: history.pluck(:date, :buyordervolume), yAxis: 'volume-axis' },
+      { name: 'Price', data: history.pluck(:date, :pricelatest), yAxis: 'price-axis' }
+    ]
 
-    # Chart Data
-    @chart_data = [
-      { name: 'Price', data: history.pluck(:date, :pricelatest), yAxis: 'price-axis' },
-      { name: 'Buy Orders', data: history.pluck(:date, :buyordervolume), yAxis: 'volume-axis' },
-      { name: 'Sold', data: history.pluck(:date, :soldtoday), yAxis: 'volume-axis' },
-      { name: 'Offers', data: history.pluck(:date, :offervolume), yAxis: 'volume-axis' },
-      { name: 'Turnover Rate', data: @turnover_history, yAxis: 'turnover-axis' }
+    # 2. Elasticity Dashboard Data
+    @elasticity_data = [
+      { name: 'Buy Wall Ratio', data: @buy_wall_history, yAxis: 'ratio-axis' },
+      { name: 'Turnover Rate (%)', data: @turnover_history, yAxis: 'percent-axis' }
+    ]
+
+    # 3. Fakeout Dashboard Data
+    @fakeout_data = [
+      { name: 'Sold Volume', data: history.pluck(:date, :soldtoday), yAxis: 'volume-axis' },
+      { name: 'Price', data: history.pluck(:date, :pricelatest), yAxis: 'price-axis' }
+    ]
+
+    # 4. Squeeze Chart (God Mode) Data
+    @squeeze_data = [
+      { name: 'Buy Wall Ratio', data: @buy_wall_history, color: '#198754', yAxis: 'ratio-axis' }, # Green
+      { name: 'Offer Volume', data: history.pluck(:date, :offervolume), color: '#dc3545', yAxis: 'volume-axis' }, # Red
+      { name: 'Sold Volume', data: history.pluck(:date, :soldtoday), type: 'column', color: '#6c757d', yAxis: 'volume-axis' } # Grey
     ]
   end
 end
