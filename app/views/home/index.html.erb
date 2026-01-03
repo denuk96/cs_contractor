@@ -73,6 +73,9 @@
   </div>
 
   <% if @trending_items.any? %>
+    <div class="d-flex justify-content-center">
+      <%= paginate @trending_items %>
+    </div>
     <div class="table-responsive">
       <table class="table table-striped table-hover align-middle">
         <thead class="table-dark">
@@ -244,6 +247,9 @@
           <% end %>
         </tbody>
       </table>
+    </div>
+    <div class="d-flex justify-content-center">
+      <%= paginate @trending_items %>
     </div>
   <% else %>
     <div class="alert alert-info">
