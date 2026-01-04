@@ -2,7 +2,8 @@ require 'open3'
 
 namespace :analyzes do
   task gemini_check: :environment do
-    trending_items = SkinItem.trending(sort_by: 'top_signals')
+    trending_items = SkinItem.trending(sort_by: 'top_signals',
+                                       max_price: 50)
     csv_data = CsvExportService.new(trending_items).call
 
     # Ensure the directory exists

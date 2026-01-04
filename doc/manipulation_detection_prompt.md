@@ -53,3 +53,5 @@ If you detect any anomalies (like Wash Trading: massive volume but zero price mo
 **Note:** Please do not include any items that are not in the "Silent Accumulation Phase".
 
 **Important** DO not response with any sort of code or suggestions, clarifications, etc. I only want the ranked list. and explanation why. Thats all.
+
+***Update*** I need to see in list concrete examples of the "Silent Accumulation Phase" items. Not collections or cases names
