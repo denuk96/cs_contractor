@@ -68,6 +68,7 @@
         <div class="col-12">
           <%= f.submit "Filter", class: "btn btn-primary" %>
           <%= link_to "Reset", root_path, class: "btn btn-secondary" %>
+          <%= link_to "Export CSV", root_path(request.query_parameters.merge(format: :csv)), class: "btn btn-success float-end", data: { turbo: false } %>
         </div>
       <% end %>
     </div>

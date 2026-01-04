@@ -1,5 +1,9 @@
 class HomeController < ApplicationController
   def index
+    # For CSV export, we want a larger limit or all items.
+    # For HTML view, we paginate.
+    limit = request.format.csv? ? 5000 : 1000
+
     trending_items = SkinItem.trending(
       rarity: params[:rarity],
       wear: params[:wear],
@@ -14,8 +18,18 @@ class HomeController < ApplicationController
       end_date: params[:end_date],
       min_offervolume: params[:min_offervolume],
       max_offervolume: params[:max_offervolume],
-      limit: 1000 # Fetch up to 1000 items to paginate
+      limit: limit
     )
-    @trending_items = Kaminari.paginate_array(trending_items).page(params[:page]).per(100)
+
+    respond_to do |format|
+      format.html do
+        @trending_items = Kaminari.paginate_array(trending_items).page(params[:page]).per(100)
+      end
+
+      format.csv do
+        csv_data = CsvExportService.new(trending_items).call
+        send_data csv_data, filename: "trending_items-#{Date.today}.csv"
+      end
+    end
   end
 end
