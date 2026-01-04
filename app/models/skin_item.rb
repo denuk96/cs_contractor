@@ -124,16 +124,13 @@ class SkinItem < ApplicationRecord
       h2_date_subquery = "(SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = fi.id AND date <= :start_date)"
       binds[:start_date] = start_date
     elsif sort_by == 'top_signals'
-      # For top signals, default to 7 days ago to check for supply drop
-      h2_date_subquery = "(SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = fi.id AND date <= date(#{h1_date_subquery}, '-10 days'))"
+      h2_date_subquery = "(SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = fi.id AND date <= date(#{h1_date_subquery}, '-7 days'))"
     else
-      # Default to oldest vs newest
       h2_date_subquery = "(SELECT MIN(date) FROM skin_item_histories WHERE skin_item_id = fi.id)"
     end
 
     final_where_conditions = []
     
-    # Default discovery mode logic (only if no name search and no specific sort)
     if name_query.blank? && sort_by.blank?
       final_where_conditions << "h1.id IS NOT NULL AND h2.id IS NOT NULL"
       final_where_conditions << "h1.soldtoday > h2.soldtoday"
@@ -141,16 +138,11 @@ class SkinItem < ApplicationRecord
       final_where_conditions << "h1.offervolume < h2.offervolume"
     end
 
-    # Top Signals logic
     if sort_by == 'top_signals'
       final_where_conditions << "h1.id IS NOT NULL AND h2.id IS NOT NULL"
-      # 1. Buy Wall Ratio > 50
       final_where_conditions << "h1.buyordervolume > (50 * h1.offervolume)"
-      # 2. Turnover Rate > 15%
       final_where_conditions << "h1.soldtoday > (0.15 * h1.offervolume)"
-      # 3. Supply dropping (current < previous)
       final_where_conditions << "h1.offervolume < h2.offervolume"
-      # 4. Wall Proximity > 0.85
       final_where_conditions << "h1.buyorderprice > (0.85 * h1.pricelatest)"
     end
 
@@ -186,7 +178,7 @@ class SkinItem < ApplicationRecord
 
     sql = <<-SQL
       WITH filtered_items AS (
-        SELECT skin_items.*, skins.collection_name FROM skin_items
+        SELECT skin_items.*, skins.collection_name, skins.rarity as skin_rarity, skins.crates as skin_crates FROM skin_items
         JOIN skins ON skins.id = skin_items.skin_id
         WHERE #{primary_where}
       )

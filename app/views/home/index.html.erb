@@ -32,12 +32,12 @@
           <%= f.label :sort_by, "Sort By", class: "form-label" %>
           <%= f.select :sort_by, [
             ["Trending Score", ""],
+            ["Top Signals (Pump Alert)", "top_signals"],
             ["Price: Low to High", "price_asc"],
             ["Price: High to Low", "price_desc"],
             ["Volume/Price Divergence", "volume_price_divergence"],
             ["Supply Dry Up (Turnover)", "supply_dry_up"],
             ["Buy Order Increase", "buy_order_increase"],
-            ["Top Signals (Pump Alert)", "top_signals"],
             ["No Sorting", "none"]
           ], { selected: params[:sort_by] }, { class: "form-select" } %>
         </div>
@@ -84,7 +84,6 @@
             <th>Name</th>
             <th>Collection</th>
             <th>Rarity</th>
-            <th>Wear</th>
             <th>
               Latest Price
               <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Price Change" data-bs-content="Shows the price change between the two comparison dates."></i>
@@ -124,43 +123,41 @@
                 <% end %>
               </td>
               <td>
-                <% if item.collection_name.present? %>
-                  <%= item.collection_name %>
+                <%
+                  collection_name = item.collection_name
+                  if collection_name.blank? && item.skin_crates.present?
+                    crates = JSON.parse(item.skin_crates) rescue []
+                    collection_name = crates.first
+                  end
+                %>
+                <% if collection_name.present? %>
+                  <%= collection_name %>
                 <% else %>
                   <span class="text-muted">-</span>
                 <% end %>
               </td>
               <td>
-                <% if item.rarity.present? %>
-                  <%
-                    rarity_color = case item.rarity
-                      when "Consumer Grade" then "bg-secondary" # Grey
-                      when "Industrial Grade" then "bg-info text-dark" # Light Blue
-                      when "Mid-Spec Grade" then "bg-primary" # Blue
-                      when "Restricted" then "bg-purple text-white" # Purple (custom class needed or use inline style)
-                      when "Classified" then "bg-pink text-dark" # Pink (custom class needed)
-                      when "Covert" then "bg-danger" # Red
-                      when "Extraordinary" then "bg-warning text-dark" # Gold
-                      when "Contraband" then "bg-warning text-dark" # Gold/Orange
+                <%
+                  rarity = item.skin_rarity || item.rarity
+                  if rarity.present?
+                    rarity_color = case rarity
+                      when "Consumer Grade", "Base Grade", "Default" then "bg-secondary"
+                      when "Industrial Grade" then "bg-info text-dark"
+                      when "Mil-Spec Grade", "High Grade" then "bg-primary"
+                      when "Restricted", "Remarkable", "Exotic" then "bg-purple"
+                      when "Classified", "Exceptional" then "bg-pink"
+                      when "Covert", "Master" then "bg-danger"
+                      when "Extraordinary", "Contraband" then "bg-warning text-dark"
                       else "bg-secondary"
                     end
 
-                    # Inline styles for colors not in standard Bootstrap
-                    style = case item.rarity
-                      when "Restricted" then "background-color: #8847ff !important;"
-                      when "Classified" then "background-color: #d32ce6 !important;"
-                      when "Extraordinary" then "background-color: #eb4b4b !important;" # Red for gloves/knives usually, or gold
+                    style = case rarity
+                      when "Restricted", "Remarkable", "Exotic" then "background-color: #8847ff !important; color: white;"
+                      when "Classified", "Exceptional" then "background-color: #d32ce6 !important; color: white;"
                       else ""
                     end
-                  %>
-                  <span class="badge <%= rarity_color %>" style="<%= style %>"><%= item.rarity %></span>
-                <% else %>
-                  <span class="text-muted">-</span>
-                <% end %>
-              </td>
-              <td>
-                <% if item.wear.present? %>
-                  <span class="badge bg-light text-dark border"><%= item.wear %></span>
+                %>
+                  <span class="badge <%= rarity_color %>" style="<%= style %>"><%= rarity %></span>
                 <% else %>
                   <span class="text-muted">-</span>
                 <% end %>
