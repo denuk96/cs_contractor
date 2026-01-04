@@ -16,6 +16,6 @@ class HomeController < ApplicationController
       max_offervolume: params[:max_offervolume],
       limit: 1000 # Fetch up to 1000 items to paginate
     )
-    @trending_items = Kaminari.paginate_array(trending_items).page(params[:page]).per(20)
+    @trending_items = Kaminari.paginate_array(trending_items).page(params[:page]).per(100)
   end
 end
