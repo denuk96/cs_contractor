@@ -70,6 +70,7 @@ class SkinItem < ApplicationRecord
     max_offervolume = options[:max_offervolume]
     stattrak = options[:stattrak]
     souvenir = options[:souvenir]
+    limit = options[:limit] || 200
 
     binds = {}
     
@@ -122,19 +123,35 @@ class SkinItem < ApplicationRecord
     if start_date.present?
       h2_date_subquery = "(SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = fi.id AND date <= :start_date)"
       binds[:start_date] = start_date
+    elsif sort_by == 'top_signals'
+      # For top signals, default to 7 days ago to check for supply drop
+      h2_date_subquery = "(SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = fi.id AND date <= date(#{h1_date_subquery}, '-10 days'))"
     else
       # Default to oldest vs newest
       h2_date_subquery = "(SELECT MIN(date) FROM skin_item_histories WHERE skin_item_id = fi.id)"
     end
 
     final_where_conditions = []
-    if name_query.blank?
+    
+    # Default discovery mode logic (only if no name search and no specific sort)
+    if name_query.blank? && sort_by.blank?
       final_where_conditions << "h1.id IS NOT NULL AND h2.id IS NOT NULL"
-      if sort_by.blank?
-        final_where_conditions << "h1.soldtoday > h2.soldtoday"
-        final_where_conditions << "h1.buyordervolume > h2.buyordervolume"
-        final_where_conditions << "h1.offervolume < h2.offervolume"
-      end
+      final_where_conditions << "h1.soldtoday > h2.soldtoday"
+      final_where_conditions << "h1.buyordervolume > h2.buyordervolume"
+      final_where_conditions << "h1.offervolume < h2.offervolume"
+    end
+
+    # Top Signals logic
+    if sort_by == 'top_signals'
+      final_where_conditions << "h1.id IS NOT NULL AND h2.id IS NOT NULL"
+      # 1. Buy Wall Ratio > 50
+      final_where_conditions << "h1.buyordervolume > (50 * h1.offervolume)"
+      # 2. Turnover Rate > 15%
+      final_where_conditions << "h1.soldtoday > (0.15 * h1.offervolume)"
+      # 3. Supply dropping (current < previous)
+      final_where_conditions << "h1.offervolume < h2.offervolume"
+      # 4. Wall Proximity > 0.85
+      final_where_conditions << "h1.buyorderprice > (0.85 * h1.pricelatest)"
     end
 
     if min_offervolume.present?
@@ -161,6 +178,8 @@ class SkinItem < ApplicationRecord
                      "(CAST(current_soldtoday AS REAL) / NULLIF(current_offervolume, 0)) DESC"
                    when 'buy_order_increase'
                      "(current_buyordervolume - prev_buyordervolume) DESC"
+                   when 'top_signals'
+                     "(CAST(current_soldtoday AS REAL) / NULLIF(current_offervolume, 0)) DESC"
                    else
                      "(current_soldtoday - prev_soldtoday) DESC"
                    end
@@ -188,7 +207,7 @@ class SkinItem < ApplicationRecord
       LEFT JOIN skin_item_histories h2 ON h2.skin_item_id = fi.id AND h2.date = #{h2_date_subquery}
       #{final_where}
       ORDER BY #{order_clause}
-      LIMIT 50
+      LIMIT #{limit}
     SQL
     
     find_by_sql([sql, binds])
