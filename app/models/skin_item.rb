@@ -83,13 +83,13 @@ class SkinItem < ApplicationRecord
       primary_conditions << "skin_items.wear = :wear"
       binds[:wear] = wear
     end
-    if stattrak.in?(['true', 'false'])
+    if stattrak.in?(["true", "false"])
       primary_conditions << "skin_items.stattrak = :stattrak"
-      binds[:stattrak] = (stattrak == 'true')
+      binds[:stattrak] = (stattrak == "true")
     end
-    if souvenir.in?(['true', 'false'])
+    if souvenir.in?(["true", "false"])
       primary_conditions << "skin_items.souvenir = :souvenir"
-      binds[:souvenir] = (souvenir == 'true')
+      binds[:souvenir] = (souvenir == "true")
     end
     if min_price.present?
       primary_conditions << "skin_items.latest_steam_price >= :min_price"
@@ -111,7 +111,7 @@ class SkinItem < ApplicationRecord
       binds[:category] = category
     end
 
-    primary_where = primary_conditions.empty? ? "1=1" : primary_conditions.join(' AND ')
+    primary_where = primary_conditions.empty? ? "1=1" : primary_conditions.join(" AND ")
 
     if end_date.present?
       h1_date_subquery = "(SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = fi.id AND date <= :end_date)"
@@ -123,8 +123,8 @@ class SkinItem < ApplicationRecord
     if start_date.present?
       h2_date_subquery = "(SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = fi.id AND date <= :start_date)"
       binds[:start_date] = start_date
-    elsif sort_by == 'top_signals'
-      h2_date_subquery = "(SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = fi.id AND date <= date(#{h1_date_subquery}, '-7 days'))"
+    elsif sort_by == "top_signals"
+      h2_date_subquery = "(SELECT MAX(date) FROM skin_item_histories WHERE skin_item_id = fi.id AND date <= date(#{h1_date_subquery}, '-10 days'))"
     else
       h2_date_subquery = "(SELECT MIN(date) FROM skin_item_histories WHERE skin_item_id = fi.id)"
     end
@@ -138,11 +138,15 @@ class SkinItem < ApplicationRecord
       final_where_conditions << "h1.offervolume < h2.offervolume"
     end
 
-    if sort_by == 'top_signals'
+    if sort_by == "top_signals"
       final_where_conditions << "h1.id IS NOT NULL AND h2.id IS NOT NULL"
-      final_where_conditions << "h1.buyordervolume > (50 * h1.offervolume)"
-      final_where_conditions << "h1.soldtoday > (0.15 * h1.offervolume)"
+      # 1. Buy Wall Ratio > 50
+      final_where_conditions << "(CAST(h1.buyordervolume AS REAL) / NULLIF(h1.offervolume, 0)) > 50"
+      # 2. Turnover Rate > 15%
+      final_where_conditions << "(CAST(h1.soldtoday AS REAL) / NULLIF(h1.offervolume, 0)) > 0.15"
+      # 3. Supply dropping (current < previous)
       final_where_conditions << "h1.offervolume < h2.offervolume"
+      # 4. Wall Proximity > 0.85
       final_where_conditions << "h1.buyorderprice > (0.85 * h1.pricelatest)"
     end
 
@@ -158,20 +162,20 @@ class SkinItem < ApplicationRecord
     final_where = final_where_conditions.empty? ? "" : "WHERE #{final_where_conditions.join(' AND ')}"
 
     order_clause = case sort_by
-                   when 'price_asc'
+                   when "price_asc"
                      "latest_steam_price ASC"
-                   when 'price_desc'
+                   when "price_desc"
                      "latest_steam_price DESC"
-                   when 'none'
+                   when "none"
                      "id ASC"
-                   when 'volume_price_divergence'
+                   when "volume_price_divergence"
                      "(current_soldtoday - prev_soldtoday) DESC, ABS(current_price - prev_price) ASC"
-                   when 'supply_dry_up'
+                   when "supply_dry_up"
                      "(CAST(current_soldtoday AS REAL) / NULLIF(current_offervolume, 0)) DESC"
-                   when 'buy_order_increase'
+                   when "buy_order_increase"
                      "(current_buyordervolume - prev_buyordervolume) DESC"
-                   when 'top_signals'
-                     "(CAST(current_soldtoday AS REAL) / NULLIF(current_offervolume, 0)) DESC"
+                   when "top_signals"
+                     "(CAST(h1.soldtoday AS REAL) / NULLIF(h1.offervolume, 0)) DESC"
                    else
                      "(current_soldtoday - prev_soldtoday) DESC"
                    end
@@ -190,6 +194,7 @@ class SkinItem < ApplicationRecord
         h1.buyordervolume as current_buyordervolume,
         h1.offervolume as current_offervolume,
         h1.pricelatest as current_price,
+        h1.buyorderprice as current_buyorderprice,
         h2.pricelatest as prev_price,
         h2.soldtoday as prev_soldtoday,
         h2.buyordervolume as prev_buyordervolume,

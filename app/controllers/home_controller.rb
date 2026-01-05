@@ -1,5 +1,8 @@
 class HomeController < ApplicationController
   def index
+    # Default Souvenir filter to 'false' (No) if not specified
+    params[:souvenir] ||= 'false'
+
     # For CSV export, we want a larger limit or all items.
     # For HTML view, we paginate.
     limit = request.format.csv? ? 5000 : 1000
