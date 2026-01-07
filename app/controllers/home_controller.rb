@@ -3,9 +3,9 @@ class HomeController < ApplicationController
     # Default Souvenir filter to 'false' (No) if not specified
     params[:souvenir] ||= 'false'
 
-    # For CSV export, we want a larger limit or all items.
+    # For CSV/JSON export, we want a larger limit or all items.
     # For HTML view, we paginate.
-    limit = request.format.csv? ? 5000 : 1000
+    limit = (request.format.csv? || request.format.json?) ? 5000 : 1000
 
     trending_items = SkinItem.trending(
       rarity: params[:rarity],
@@ -32,6 +32,11 @@ class HomeController < ApplicationController
       format.csv do
         csv_data = CsvExportService.new(trending_items).call
         send_data csv_data, filename: "trending_items-#{Date.today}.csv"
+      end
+
+      format.json do
+        json_data = JsonExportService.new(trending_items).call
+        send_data json_data, filename: "trending_items-#{Date.today}.json", type: :json, disposition: "attachment"
       end
     end
   end

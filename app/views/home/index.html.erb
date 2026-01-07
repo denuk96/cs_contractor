@@ -68,7 +68,10 @@
         <div class="col-12">
           <%= f.submit "Filter", class: "btn btn-primary" %>
           <%= link_to "Reset", root_path, class: "btn btn-secondary" %>
-          <%= link_to "Export CSV", root_path(request.query_parameters.merge(format: :csv)), class: "btn btn-success float-end", data: { turbo: false } %>
+          <div class="float-end">
+            <%= link_to "Export CSV", root_path(request.query_parameters.merge(format: :csv)), class: "btn btn-success me-2", data: { turbo: false } %>
+            <%= link_to "Export JSON", root_path(request.query_parameters.merge(format: :json)), class: "btn btn-outline-success", data: { turbo: false } %>
+          </div>
         </div>
       <% end %>
     </div>

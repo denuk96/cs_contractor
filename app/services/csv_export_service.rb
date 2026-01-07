@@ -1,5 +1,3 @@
-
-
 class CsvExportService
   def initialize(items)
     @items = items
@@ -18,11 +16,11 @@ class CsvExportService
 
   def headers
     [
-      'Name', 'Collection', 'Rarity', 'Wear', 'Latest Price',
-      'Price Change', 'Sold Today', 'Sold Volume Change',
-      'Offer Volume', 'Offer Change', 'Turnover Rate (%)',
-      'Buy Order Volume', 'Buy Order Change', 'Buy Wall Ratio (x)',
-      'Comparison Start', 'Comparison End'
+      "Name", "Collection", "Rarity", "Wear", "Latest Price",
+      "Price Change", "Sold Today", "Sold Volume Change",
+      "Offer Volume", "Offer Change", "Turnover Rate (%)",
+      "Buy Order Volume", "Buy Order Change", "Buy Wall Ratio (x)",
+      "Comparison Start", "Comparison End"
     ]
   end
 
