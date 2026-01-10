@@ -18,8 +18,8 @@ module Import
           next
         end
         wear = define_wear(price["markethashname"])
-        latest_steam_price = (price["pricelatest"] || price["pricelatestsell"] || price["buyordermedian"]).to_f
-        latest_steam_order_price = (price["buyorderprice"] || price["buyordermedian"] || price["buyorderavg"]).to_f
+        latest_steam_price = find_valid_price(price, keys: %w[pricelatest pricelatestsell buyordermedian pricerealmedian priceavg24h])
+        latest_steam_order_price = find_valid_price(price, keys: %w[buyorderprice buyordermedian buyorderavg])
         skin_item = SkinItem.upsert(
           {  name: price["markethashname"],
              rarity: skin.rarity,
@@ -29,17 +29,20 @@ module Import
              skin_id: skin.id,
              latest_steam_price:,
              latest_steam_order_price:,
-             last_steam_price_updated_at: Time.zone.now,
-             metadata: price
+             last_steam_price_updated_at: Time.zone.now
           },
           unique_by: :index_skin_items_on_name,
           returning: %w[id]
         )
 
+        all_prices = price["prices"].dup << { "quantity" => price["offervolume"],
+                                              "price" => find_valid_price(price, keys: %w[pricerealmedian priceavg24h pricereal]) } # steam
+        all_markets_weighted_median_price = calculate_weighted_median(all_prices)
+
         SkinItemHistory.upsert(
           {
             skin_item_id: skin_item.first["id"],
-            pricelatest: price["pricelatest"],
+            pricelatest: latest_steam_price,
             pricemedian: price["pricemedian"],
             pricemedian24h: price["pricemedian24h"],
             pricemedian7d: price["pricemedian7d"],
@@ -56,10 +59,15 @@ module Import
             buyordermedian: price["buyordermedian"],
             buyorderavg: price["buyorderavg"],
             offervolume: price["offervolume"],
-            date: Time.zone.today
+            all_markets_quantity: (price["prices"].sum { |p| p["quantity"] } + price["offervolume"]),
+            all_markets_weighted_median_price:,
+            date: Time.zone.today,
+            metadata: price
           },
           unique_by: %i[skin_item_id date]
         )
+        rescue => e
+          Rails.logger.warn("SkinItem upsert skipped (id=#{skin_item.inspect}): #{e.class}: #{e.message}")
       end
     end
 
@@ -111,5 +119,58 @@ module Import
     def invalid_name?(name)
       INVALID_NAMES.any? { |invalid| name.include?(invalid) }
     end
+
+    def calculate_weighted_median(items)
+      sanitized = items.map do |i|
+        {
+          "price" => i["price"].to_f,
+          "quantity" => i["quantity"].to_i
+        }
+      end.reject { |i| i["price"].zero? || i["quantity"].zero? }
+
+      return nil if sanitized.empty?
+      return sanitized.first["price"] if sanitized.size >= 1
+
+      sorted = sanitized.sort_by { |i| i["price"] }
+
+      total_qty = sorted.sum { |i| i["quantity"] }
+      return 0.0 if total_qty.zero?
+
+      mid_low = (total_qty + 1) / 2.0
+      mid_high = (total_qty + 2) / 2.0
+
+      find_price = ->(target) do
+        cumulative = 0
+        sorted.each do |item|
+          cumulative += item["quantity"]
+          return item["price"] if cumulative >= target
+        end
+      end
+
+      (find_price.call(mid_low) + find_price.call(mid_high)) / 2.0
+    end
+
+    def find_valid_price(price_data, keys:)
+      # Find the first key whose value passes our validation
+      valid_key = keys.find do |key|
+        val = price_data[key]
+        val && valid_price?(val)
+      end
+
+      # Return the float value of the valid key, or nil if none are sane
+      valid_key ? price_data[valid_key].to_f : nil
+    end
+
+    def valid_price?(value, min: 0.01, max: 100_000.0)
+      # 1. Ensure it's a number (handles nil or malformed strings)
+      num = value.to_f
+
+      # 2. Check if it's Finite (rejects Infinity or NaN)
+      return false unless num.finite?
+
+      # 3. Range check: Reject E-notation/outliers
+      num >= min && num <= max
+    end
   end
 end
+

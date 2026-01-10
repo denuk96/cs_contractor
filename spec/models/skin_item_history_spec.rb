@@ -2,28 +2,31 @@
 #
 # Table name: skin_item_histories
 #
-#  id             :integer          not null, primary key
-#  skin_item_id   :integer          not null
-#  pricelatest    :float
-#  pricemedian    :float
-#  pricemedian24h :float
-#  pricemedian7d  :float
-#  pricemedian30d :float
-#  pricemedian90d :float
-#  sold24h        :integer
-#  sold7d         :integer
-#  sold30d        :integer
-#  sold90d        :integer
-#  soldtotal      :integer
-#  soldtoday      :integer
-#  buyordervolume :integer
-#  buyorderprice  :float
-#  buyordermedian :float
-#  buyorderavg    :float
-#  offervolume    :integer
-#  date           :date             not null
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
+#  id                                :integer          not null, primary key
+#  skin_item_id                      :integer          not null
+#  pricelatest                       :float
+#  pricemedian                       :float
+#  pricemedian24h                    :float
+#  pricemedian7d                     :float
+#  pricemedian30d                    :float
+#  pricemedian90d                    :float
+#  sold24h                           :integer
+#  sold7d                            :integer
+#  sold30d                           :integer
+#  sold90d                           :integer
+#  soldtotal                         :integer
+#  soldtoday                         :integer
+#  buyordervolume                    :integer
+#  buyorderprice                     :float
+#  buyordermedian                    :float
+#  buyorderavg                       :float
+#  offervolume                       :integer
+#  date                              :date             not null
+#  created_at                        :datetime         not null
+#  updated_at                        :datetime         not null
+#  metadata                          :text
+#  all_markets_quantity              :integer
+#  all_markets_weighted_median_price :float
 #
 # Indexes
 #

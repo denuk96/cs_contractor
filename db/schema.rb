@@ -10,14 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_25_170718) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_10_121739) do
   create_table "skin_item_histories", force: :cascade do |t|
+    t.integer "all_markets_quantity"
+    t.float "all_markets_weighted_median_price"
     t.float "buyorderavg"
     t.float "buyordermedian"
     t.float "buyorderprice"
     t.integer "buyordervolume"
     t.datetime "created_at", null: false
     t.date "date", null: false
+    t.text "metadata"
     t.integer "offervolume"
     t.float "pricelatest"
     t.float "pricemedian"
