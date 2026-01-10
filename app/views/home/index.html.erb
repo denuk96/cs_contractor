@@ -68,10 +68,8 @@
         <div class="col-12">
           <%= f.submit "Filter", class: "btn btn-primary" %>
           <%= link_to "Reset", root_path, class: "btn btn-secondary" %>
-          <div class="float-end">
-            <%= link_to "Export CSV", root_path(request.query_parameters.merge(format: :csv)), class: "btn btn-success me-2", data: { turbo: false } %>
-            <%= link_to "Export JSON", root_path(request.query_parameters.merge(format: :json)), class: "btn btn-outline-success", data: { turbo: false } %>
-          </div>
+          <%= link_to "Export CSV", root_path(request.query_parameters.merge(format: :csv)), class: "btn btn-success float-end me-2", data: { turbo: false } %>
+          <%= link_to "Export JSON", root_path(request.query_parameters.merge(format: :json)), class: "btn btn-outline-success float-end", data: { turbo: false } %>
         </div>
       <% end %>
     </div>
@@ -199,9 +197,9 @@
                     <small class="text-muted">
                       <% sold_diff = item.current_soldtoday.to_i - item.prev_soldtoday.to_i %>
                       <% if sold_diff > 0 %>
-                        <span class="badge bg-success">Sold: +<%= sold_diff %></span>
+                        <span class="badge bg-danger">Sold: +<%= sold_diff %></span>
                       <% elsif sold_diff < 0 %>
-                        <span class="badge bg-danger">Sold: <%= sold_diff %></span>
+                        <span class="badge bg-success">Sold: <%= sold_diff %></span>
                       <% end %>
 
                       <% offer_diff = item.current_offervolume.to_i - item.prev_offervolume.to_i %>

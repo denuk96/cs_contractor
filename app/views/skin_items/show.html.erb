@@ -111,32 +111,40 @@
             <div class="col-md-6">
               <dl class="row mb-0">
                 <dt class="col-sm-4">Collection</dt>
-                <dd class="col-sm-8"><%= @skin_item.skin&.collection_name || '-' %></dd>
+                <dd class="col-sm-8">
+                  <%
+                    collection_name = @skin_item.collection_name
+                    if collection_name.blank? && @skin_item.skin_crates.present?
+                      crates = JSON.parse(@skin_item.skin_crates) rescue []
+                      collection_name = crates.first
+                    end
+                  %>
+                  <%= collection_name || '-' %>
+                </dd>
 
                 <dt class="col-sm-4">Rarity</dt>
                 <dd class="col-sm-8">
-                  <% if @skin_item.rarity.present? %>
-                    <%
-                      rarity_color = case @skin_item.rarity
-                        when "Consumer Grade" then "bg-secondary"
+                  <%
+                    rarity = @skin_item.skin_rarity || @skin_item.rarity
+                    if rarity.present?
+                      rarity_color = case rarity
+                        when "Consumer Grade", "Base Grade", "Default" then "bg-secondary"
                         when "Industrial Grade" then "bg-info text-dark"
-                        when "Mid-Spec Grade" then "bg-primary"
-                        when "Restricted" then "bg-purple text-white"
-                        when "Classified" then "bg-pink text-dark"
-                        when "Covert" then "bg-danger"
-                        when "Extraordinary" then "bg-warning text-dark"
-                        when "Contraband" then "bg-warning text-dark"
+                        when "Mil-Spec Grade", "High Grade" then "bg-primary"
+                        when "Restricted", "Remarkable", "Exotic" then "bg-purple"
+                        when "Classified", "Exceptional" then "bg-pink"
+                        when "Covert", "Master" then "bg-danger"
+                        when "Extraordinary", "Contraband" then "bg-warning text-dark"
                         else "bg-secondary"
                       end
 
-                      style = case @skin_item.rarity
-                        when "Restricted" then "background-color: #8847ff !important;"
-                        when "Classified" then "background-color: #d32ce6 !important;"
-                        when "Extraordinary" then "background-color: #eb4b4b !important;"
+                      style = case rarity
+                        when "Restricted", "Remarkable", "Exotic" then "background-color: #8847ff !important; color: white;"
+                        when "Classified", "Exceptional" then "background-color: #d32ce6 !important; color: white;"
                         else ""
                       end
-                    %>
-                    <span class="badge <%= rarity_color %>" style="<%= style %>"><%= @skin_item.rarity %></span>
+                  %>
+                    <span class="badge <%= rarity_color %>" style="<%= style %>"><%= rarity %></span>
                   <% else %>
                     -
                   <% end %>
@@ -198,6 +206,23 @@
 
   <!-- Charts Section -->
   <div class="row">
+    <!-- 0. Supply Runover Dashboard (New) -->
+    <div class="col-md-12 mb-5">
+      <h3>
+        0. The "Supply Runover" Dashboard
+        <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Supply vs Demand" data-bs-content="Directly compares the daily Sold Volume against the available Offer Volume. If the blue line (Sold) consistently approaches or crosses the black line (Offers), a supply squeeze is imminent."></i>
+      </h3>
+      <%= line_chart @supply_runover_data, library: {
+        scales: {
+          'volume-axis': {
+            type: 'linear',
+            position: 'left',
+            title: { display: true, text: 'Volume' }
+          }
+        }
+      } %>
+    </div>
+
     <!-- 1. Accumulation Dashboard -->
     <div class="col-md-12 mb-5">
       <h3>

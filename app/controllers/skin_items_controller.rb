@@ -1,6 +1,8 @@
 class SkinItemsController < ApplicationController
   def show
-    @skin_item = SkinItem.find(params[:id])
+    # Join with skins to get the fallback rarity and crates
+    @skin_item = SkinItem.joins(:skin).select('skin_items.*, skins.rarity as skin_rarity, skins.collection_name, skins.crates as skin_crates').find(params[:id])
+    
     history = @skin_item.skin_item_histories.order(date: :asc)
     latest_history = history.last
 
@@ -34,7 +36,13 @@ class SkinItemsController < ApplicationController
       @price_change = nil
     end
 
-    # 1. Accumulation Dashboard Data
+    # 0. Supply Runover Dashboard Data (New)
+    @supply_runover_data = [
+      { name: 'Sold Volume', data: history.pluck(:date, :soldtoday), yAxis: 'volume-axis' },
+      { name: 'Offer Volume (Supply)', data: history.pluck(:date, :offervolume), yAxis: 'volume-axis' }
+    ]
+
+    # 1. Accumulation Dashboard Data (Reverted)
     @accumulation_data = [
       { name: 'Offer Volume (Supply)', data: history.pluck(:date, :offervolume), yAxis: 'volume-axis' },
       { name: 'Buy Orders (Demand)', data: history.pluck(:date, :buyordervolume), yAxis: 'volume-axis' },
