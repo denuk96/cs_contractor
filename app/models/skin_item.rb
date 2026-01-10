@@ -195,6 +195,7 @@ class SkinItem < ApplicationRecord
         h1.offervolume as current_offervolume,
         h1.pricelatest as current_price,
         h1.buyorderprice as current_buyorderprice,
+        h1.all_markets_quantity as current_all_markets_quantity,
         h2.pricelatest as prev_price,
         h2.soldtoday as prev_soldtoday,
         h2.buyordervolume as prev_buyordervolume,

@@ -103,6 +103,10 @@
               Buy Wall
               <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Buy Wall Ratio" data-bs-content="Formula: Buy Orders / Offer Vol. <br><b>5x-10x:</b> Normal support. <br><b>>50x (PUMP ALERT):</b> Someone has cornered the market. The massive buy wall prevents the price from dropping."></i>
             </th>
+            <th>
+              Total Quantity
+              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Total Quantity" data-bs-content="Total quantity available across all markets."></i>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -247,6 +251,13 @@
                   <span class="<%= 'text-danger fw-bold' if buy_wall_ratio >= 50 %>">
                     <%= number_with_precision(buy_wall_ratio, precision: 2) %>x
                   </span>
+                <% else %>
+                  <span class="text-muted">-</span>
+                <% end %>
+              </td>
+              <td>
+                <% if item.current_all_markets_quantity.present? %>
+                  <%= item.current_all_markets_quantity %>
                 <% else %>
                   <span class="text-muted">-</span>
                 <% end %>

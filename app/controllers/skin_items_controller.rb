@@ -39,7 +39,8 @@ class SkinItemsController < ApplicationController
     # 0. Supply Runover Dashboard Data (New)
     @supply_runover_data = [
       { name: 'Sold Volume', data: history.pluck(:date, :soldtoday), yAxis: 'volume-axis' },
-      { name: 'Offer Volume (Supply)', data: history.pluck(:date, :offervolume), yAxis: 'volume-axis' }
+      { name: 'Offer Volume (Supply)', data: history.pluck(:date, :offervolume), yAxis: 'volume-axis' },
+      { name: 'All Markets Quantity', data: history.pluck(:date, :all_markets_quantity), yAxis: 'volume-axis', dataset: { hidden: true } }
     ]
 
     # 1. Accumulation Dashboard Data (Reverted)
@@ -58,7 +59,8 @@ class SkinItemsController < ApplicationController
     # 3. Fakeout Dashboard Data
     @fakeout_data = [
       { name: 'Sold Volume', data: history.pluck(:date, :soldtoday), yAxis: 'volume-axis' },
-      { name: 'Price', data: history.pluck(:date, :pricelatest), yAxis: 'price-axis' }
+      { name: 'Price', data: history.pluck(:date, :pricelatest), yAxis: 'price-axis' },
+      { name: 'All Markets Weighted Median Price', data: history.pluck(:date, :all_markets_weighted_median_price), yAxis: 'price-axis', dataset: { hidden: true } }
     ]
 
     # 4. Squeeze Chart (God Mode) Data

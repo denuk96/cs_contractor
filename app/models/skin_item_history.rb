@@ -36,4 +36,6 @@
 
 class SkinItemHistory < ApplicationRecord
   belongs_to :skin_item
+
+  serialize :metadata, type: Hash, default: {}, coder: JSON
 end

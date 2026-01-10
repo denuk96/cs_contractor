@@ -66,8 +66,6 @@ module Import
           },
           unique_by: %i[skin_item_id date]
         )
-        rescue => e
-          Rails.logger.warn("SkinItem upsert skipped (id=#{skin_item.inspect}): #{e.class}: #{e.message}")
       end
     end
 
