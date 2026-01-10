@@ -321,5 +321,18 @@
     </div>
   </div>
 
+  <% if @latest_metadata.present? %>
+    <div class="row mb-5">
+      <div class="col-md-12">
+        <h3>Latest Metadata</h3>
+        <div class="card">
+          <div class="card-body">
+            <pre><%= JSON.pretty_generate(@latest_metadata) %></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
   <%= link_to "Back to Trending", root_path, class: "btn btn-secondary mb-5" %>
 </div>

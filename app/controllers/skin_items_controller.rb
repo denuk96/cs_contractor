@@ -5,6 +5,7 @@ class SkinItemsController < ApplicationController
     
     history = @skin_item.skin_item_histories.order(date: :asc)
     latest_history = history.last
+    @latest_metadata = latest_history&.metadata
 
     # Turnover Rate History
     @turnover_history = history.map do |h|
