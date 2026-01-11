@@ -70,6 +70,7 @@ class SkinItem < ApplicationRecord
     max_offervolume = options[:max_offervolume]
     stattrak = options[:stattrak]
     souvenir = options[:souvenir]
+    collection = options[:collection]
     limit = options[:limit] || 200
 
     binds = {}
@@ -111,6 +112,25 @@ class SkinItem < ApplicationRecord
       binds[:category] = category
     end
 
+    if collection.present?
+      # Ensure collection is an array
+      collection = [collection] unless collection.is_a?(Array)
+      # Filter out empty strings
+      collection = collection.reject(&:blank?)
+      
+      if collection.any?
+        # If we haven't joined skins yet, do it now
+        unless category.present?
+          category_join = "JOIN skins ON skins.id = skin_items.skin_id"
+        end
+        
+        # Handle multiple collections
+        placeholders = collection.map.with_index { |_, i| ":collection_#{i}" }.join(", ")
+        primary_conditions << "skins.collection_name IN (#{placeholders})"
+        collection.each_with_index { |c, i| binds["collection_#{i}".to_sym] = c }
+      end
+    end
+
     primary_where = primary_conditions.empty? ? "1=1" : primary_conditions.join(" AND ")
 
     if end_date.present?
@@ -131,7 +151,7 @@ class SkinItem < ApplicationRecord
 
     final_where_conditions = []
     
-    if name_query.blank? && sort_by.blank?
+    if name_query.blank? && sort_by.blank? && collection.blank?
       final_where_conditions << "h1.id IS NOT NULL AND h2.id IS NOT NULL"
       final_where_conditions << "h1.soldtoday > h2.soldtoday"
       final_where_conditions << "h1.buyordervolume > h2.buyordervolume"

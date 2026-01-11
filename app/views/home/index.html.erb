@@ -13,6 +13,10 @@
           <%= f.select :category, Skin::ITEM_TYPES, { include_blank: "All Categories", selected: params[:category] }, { class: "form-select" } %>
         </div>
         <div class="col-md-3">
+          <%= f.label :collection, "Collection", class: "form-label" %>
+          <%= f.select :collection, Skin.distinct.pluck(:collection_name).compact.sort, { include_blank: "All Collections", selected: params[:collection] }, { class: "form-select", multiple: true, size: 5 } %>
+        </div>
+        <div class="col-md-3">
           <%= f.label :rarity, class: "form-label" %>
           <%= f.select :rarity, SkinItem.rarities.to_a, { include_blank: "All Rarities", selected: params[:rarity] }, { class: "form-select" } %>
         </div>
@@ -86,7 +90,6 @@
             <th>Name</th>
             <th>Collection</th>
             <th>Rarity</th>
-            <th>Wear</th>
             <th>
               Latest Price
               <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Price Change" data-bs-content="Shows the price change between the two comparison dates."></i>
@@ -165,13 +168,6 @@
                     end
                 %>
                   <span class="badge <%= rarity_color %>" style="<%= style %>"><%= rarity %></span>
-                <% else %>
-                  <span class="text-muted">-</span>
-                <% end %>
-              </td>
-              <td>
-                <% if item.wear.present? %>
-                  <span class="badge bg-light text-dark border"><%= item.wear %></span>
                 <% else %>
                   <span class="text-muted">-</span>
                 <% end %>

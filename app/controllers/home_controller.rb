@@ -17,6 +17,7 @@ class HomeController < ApplicationController
       sort_by: params[:sort_by],
       name: params[:name],
       category: params[:category],
+      collection: params[:collection],
       start_date: params[:start_date],
       end_date: params[:end_date],
       min_offervolume: params[:min_offervolume],
