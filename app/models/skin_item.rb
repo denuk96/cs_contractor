@@ -105,9 +105,7 @@ class SkinItem < ApplicationRecord
       binds[:name] = "%#{name_query}%"
     end
 
-    category_join = ""
     if category.present?
-      category_join = "JOIN skins ON skins.id = skin_items.skin_id"
       primary_conditions << "skins.category = :category"
       binds[:category] = category
     end
@@ -119,15 +117,17 @@ class SkinItem < ApplicationRecord
       collection = collection.reject(&:blank?)
       
       if collection.any?
-        # If we haven't joined skins yet, do it now
-        unless category.present?
-          category_join = "JOIN skins ON skins.id = skin_items.skin_id"
+        sub_conditions = []
+        collection.each_with_index do |c, i|
+          c_key = "coll_#{i}".to_sym
+          c_crate_key = "coll_crate_#{i}".to_sym
+          
+          # Check exact match in collection_name OR partial match in crates (JSON array)
+          sub_conditions << "(skins.collection_name = :#{c_key} OR skins.crates LIKE :#{c_crate_key})"
+          binds[c_key] = c
+          binds[c_crate_key] = "%#{c}%"
         end
-        
-        # Handle multiple collections
-        placeholders = collection.map.with_index { |_, i| ":collection_#{i}" }.join(", ")
-        primary_conditions << "skins.collection_name IN (#{placeholders})"
-        collection.each_with_index { |c, i| binds["collection_#{i}".to_sym] = c }
+        primary_conditions << "(#{sub_conditions.join(' OR ')})"
       end
     end
 
@@ -202,7 +202,7 @@ class SkinItem < ApplicationRecord
 
     sql = <<-SQL
       WITH filtered_items AS (
-        SELECT skin_items.*, skins.collection_name, skins.rarity as skin_rarity, skins.crates as skin_crates FROM skin_items
+        SELECT skin_items.*, skins.collection_name, skins.rarity as skin_rarity, skins.crates as skin_crates, skins.min_float as skin_min_float, skins.max_float as skin_max_float FROM skin_items
         JOIN skins ON skins.id = skin_items.skin_id
         WHERE #{primary_where}
       )
