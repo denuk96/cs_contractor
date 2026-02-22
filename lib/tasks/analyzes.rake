@@ -2,8 +2,10 @@ require 'open3'
 
 namespace :analyzes do
   task gemini_check: :environment do
-    trending_items = SkinItem.trending(sort_by: 'top_signals',
-                                       max_price: 50)
+    trending_items = SkinItems::TrendingQuery.new(
+      sort_by: "top_signals",
+      max_price: 50
+    ).call
     json_data = JsonExportService.new(trending_items).call
 
     # Ensure the directory exists

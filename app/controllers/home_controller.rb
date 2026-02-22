@@ -7,7 +7,7 @@ class HomeController < ApplicationController
     # For HTML view, we paginate.
     limit = (request.format.csv? || request.format.json?) ? 5000 : 1000
 
-    trending_items = SkinItem.trending(
+    trending_items = SkinItems::TrendingQuery.new(
       rarity: params[:rarity],
       wear: params[:wear],
       stattrak: params[:stattrak],
@@ -23,7 +23,7 @@ class HomeController < ApplicationController
       min_offervolume: params[:min_offervolume],
       max_offervolume: params[:max_offervolume],
       limit: limit
-    )
+    ).call
 
     respond_to do |format|
       format.html do
