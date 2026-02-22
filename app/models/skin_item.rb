@@ -48,11 +48,20 @@ class SkinItem < ApplicationRecord
   }
 
   scope :not_souvenir, -> { where(souvenir: false) }
+  CONTRACTABLE_CATEGORIES = [
+    "Rifle", "Rifles",
+    "SMG", "SMGs",
+    "Pistol", "Pistols",
+    "Shotgun", "Shotguns",
+    "Sniper Rifle", "Sniper Rifles",
+    "Heavy", "Heavy Equipment"
+  ].freeze
+
   scope :contractable, -> {
     joins(:skin)
       .where.not(rarity: %w[Extraordinary Contraband])
-         .where(skins: { category: %w[Rifles SMGs Pistols Heavy Equipment] })
-         .where(souvenir: false)
+      .where(skins: { category: CONTRACTABLE_CATEGORIES })
+      .where(souvenir: false)
   }
   scope :have_prices, -> { where.not(latest_steam_price: nil) }
 
@@ -246,5 +255,39 @@ class SkinItem < ApplicationRecord
 
   def fetch_order_activity
     SteamWebApi.new.orders_activity(name)
+  end
+
+  def float_min
+    if has_attribute?("skin_min_float") && !self[:skin_min_float].nil?
+      self[:skin_min_float]
+    else
+      skin&.min_float
+    end
+  end
+
+  def float_max
+    if has_attribute?("skin_max_float") && !self[:skin_max_float].nil?
+      self[:skin_max_float]
+    else
+      skin&.max_float
+    end
+  end
+
+  def float_cap
+    return nil if float_min.nil? || float_max.nil?
+
+    float_max - float_min
+  end
+
+  def can_have_factory_new?
+    float_min.present? && float_min < Skin::FACTORY_NEW_MAX_FLOAT
+  end
+
+  def best_possible_wear
+    Skin.new(min_float: float_min).best_possible_wear
+  end
+
+  def fn_probability_percent
+    Skin.fn_probability_percent(float_cap, min_float: float_min)
   end
 end

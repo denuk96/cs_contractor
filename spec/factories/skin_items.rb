@@ -24,6 +24,12 @@
 
 FactoryBot.define do
   factory :skin_item do
-
+    association :skin
+    sequence(:name) { |n| "Skin Item #{n}" }
+    rarity { "Restricted" }
+    wear { "Factory New" }
+    souvenir { false }
+    stattrak { false }
+    latest_steam_price { 1.23 }
   end
 end

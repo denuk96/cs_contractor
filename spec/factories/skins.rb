@@ -26,6 +26,15 @@
 
 FactoryBot.define do
   factory :skin do
-    
+    sequence(:name) { |n| "Skin #{n}" }
+    sequence(:object_id) { |n| "skin_object_#{n}" }
+    collection_name { "Test Collection" }
+    rarity { "Restricted" }
+    category { "Rifles" }
+    min_float { 0.0 }
+    max_float { 0.7 }
+    wears { [] }
+    crates { [] }
+    weapon { {} }
   end
 end

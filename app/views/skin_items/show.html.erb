@@ -153,6 +153,38 @@
                 <dt class="col-sm-4">Wear</dt>
                 <dd class="col-sm-8"><%= @skin_item.wear || '-' %></dd>
 
+                <dt class="col-sm-4">Float Cap</dt>
+                <dd class="col-sm-8">
+                  <% if @skin_item.float_cap.present? %>
+                    <%= number_with_precision(@skin_item.float_cap, precision: 2) %>
+                  <% else %>
+                    -
+                  <% end %>
+                </dd>
+
+                <dt class="col-sm-4">FN Chance</dt>
+                <dd class="col-sm-8">
+                  <% if @skin_item.float_min.nil? || @skin_item.float_max.nil? %>
+                    -
+                  <% elsif @skin_item.can_have_factory_new? %>
+                    <% prob = @skin_item.fn_probability_percent %>
+                    <% badge_class = if prob.to_f >= 10
+                                      "bg-success"
+                                    elsif prob.to_f >= 1
+                                      "bg-warning text-dark"
+                                    else
+                                      "bg-danger"
+                                    end %>
+                    <span class="badge <%= badge_class %>"><%= number_to_percentage(prob, precision: 1) %></span>
+                  <% else %>
+                    <span class="text-muted">No FN</span>
+                    <% if @skin_item.best_possible_wear.present? %>
+                      <br>
+                      <small class="text-muted">Best: <%= @skin_item.best_possible_wear %></small>
+                    <% end %>
+                  <% end %>
+                </dd>
+
                 <dt class="col-sm-4">Current Price</dt>
                 <dd class="col-sm-8 fw-bold"><%= number_to_currency(@skin_item.latest_steam_price) %></dd>
               </dl>

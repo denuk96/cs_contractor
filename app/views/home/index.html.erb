@@ -90,6 +90,8 @@
             <th>Name</th>
             <th>Collection</th>
             <th>Rarity</th>
+            <th>Float Cap</th>
+            <th>FN Chance</th>
             <th>
               Latest Price
               <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Price Change" data-bs-content="Shows the price change between the two comparison dates."></i>
@@ -170,6 +172,34 @@
                   <span class="badge <%= rarity_color %>" style="<%= style %>"><%= rarity %></span>
                 <% else %>
                   <span class="text-muted">-</span>
+                <% end %>
+              </td>
+              <td>
+                <% if item.float_cap.present? %>
+                  <%= number_with_precision(item.float_cap, precision: 2) %>
+                <% else %>
+                  <span class="text-muted">-</span>
+                <% end %>
+              </td>
+              <td>
+                <% if item.float_min.nil? || item.float_max.nil? %>
+                  <span class="text-muted">-</span>
+                <% elsif item.can_have_factory_new? %>
+                  <% prob = item.fn_probability_percent %>
+                  <% badge_class = if prob.to_f >= 10
+                                    "bg-success"
+                                  elsif prob.to_f >= 1
+                                    "bg-warning text-dark"
+                                  else
+                                    "bg-danger"
+                                  end %>
+                  <span class="badge <%= badge_class %>"><%= number_to_percentage(prob, precision: 1) %></span>
+                <% else %>
+                  <span class="text-muted">No FN</span>
+                  <% if item.best_possible_wear.present? %>
+                    <br>
+                    <small class="text-muted">Best: <%= item.best_possible_wear %></small>
+                  <% end %>
                 <% end %>
               </td>
               <td>

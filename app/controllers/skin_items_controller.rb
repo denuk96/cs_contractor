@@ -1,8 +1,10 @@
 class SkinItemsController < ApplicationController
   def show
     # Join with skins to get the fallback rarity and crates
-    @skin_item = SkinItem.joins(:skin).select('skin_items.*, skins.rarity as skin_rarity, skins.collection_name, skins.crates as skin_crates').find(params[:id])
-    
+    @skin_item = SkinItem.joins(:skin)
+                         .select("skin_items.*, skins.rarity as skin_rarity, skins.collection_name, skins.crates as skin_crates, skins.min_float as skin_min_float, skins.max_float as skin_max_float")
+                         .find(params[:id])
+
     history = @skin_item.skin_item_histories.order(date: :asc)
     latest_history = history.last
     @latest_metadata = latest_history&.metadata

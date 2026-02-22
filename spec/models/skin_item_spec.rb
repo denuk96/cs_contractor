@@ -22,8 +22,19 @@
 #  index_skin_items_on_skin_id  (skin_id)
 #
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe SkinItem, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  describe "float data derived from joined skin" do
+    it "uses joined skin_min_float/skin_max_float aliases when present" do
+      skin_item = create(:skin_item, skin: create(:skin, min_float: 0.0, max_float: 0.7))
+
+      joined = SkinItem.joins(:skin)
+                       .select("skin_items.*, skins.min_float as skin_min_float, skins.max_float as skin_max_float")
+                       .find(skin_item.id)
+
+      expect(joined.float_cap).to be_within(0.0001).of(0.7)
+      expect(joined.fn_probability_percent).to be_within(0.05).of(10.0)
+    end
+  end
 end

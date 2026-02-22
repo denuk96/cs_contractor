@@ -17,7 +17,7 @@ module Tradeups
                    max_cost: nil,
                    minimum_outcome_lose: 100,
                    skip_if_price_missing: true,
-                   consider_float: true,
+                   consider_float: false,
                    cheapest_fill_count: nil,
                    outcome_price_type: :latest_steam_price,
                    filler_strategy: :cheapest_any) # :cheapest_any | :mixed_high_wear
