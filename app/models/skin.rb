@@ -97,4 +97,31 @@ class Skin < ApplicationRecord
 
     [percent, 100.0].min
   end
+
+  def self.wear_probability_percent(wear, float_range, min_float:)
+    return nil if float_range.nil? || min_float.nil?
+
+    wear_range = WEAR_RANGES[wear]
+    return nil if wear_range.nil?
+
+    range = float_range.to_f
+    if range <= 0.0
+      return (wear_range.cover?(min_float) ? 100.0 : 0.0)
+    end
+
+    max_float = min_float + range
+    overlap_start = [min_float, wear_range.begin].max
+    overlap_end = [max_float, wear_range.end].min
+    overlap = overlap_end - overlap_start
+    return 0.0 if overlap <= 0.0
+
+    percent = (overlap / range) * 100.0
+    if range > FLOAT_RANGE_DECAY_START
+      percent *= Math.exp(-FLOAT_RANGE_DECAY_K * (range - FLOAT_RANGE_DECAY_START))
+    end
+
+    return 0.0 if percent.nan? || percent.infinite? || percent.negative?
+
+    [percent, 100.0].min
+  end
 end

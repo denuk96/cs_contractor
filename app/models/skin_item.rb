@@ -119,4 +119,11 @@ class SkinItem < ApplicationRecord
   def fn_probability_percent
     Skin.fn_probability_percent(float_cap, min_float: float_min)
   end
+
+  def best_wear_probability_percent
+    wear = best_possible_wear
+    return nil if wear.nil?
+
+    Skin.wear_probability_percent(wear, float_cap, min_float: float_min)
+  end
 end
