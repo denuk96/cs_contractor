@@ -12,6 +12,57 @@ module SkinItems
 
     attr_reader :options
 
+    def normalized_rarity(rarity)
+      # `rarity` can come in as:
+      # - enum integer value (e.g. "2") from a select
+      # - enum key string (e.g. "Mid-Spec Grade") from links/APIs
+      # - common alias ("Mil-Spec Grade")
+      #
+      # Data note: historically, rarity exists in *both* `skin_items.rarity` (integer enum)
+      # and `skins.rarity` (string). Some datasets only populate one of them, so we accept either.
+      rarity_key = rarity.to_s.strip
+
+      rarity_value =
+        if rarity_key.match?(/\A\d+\z/)
+          rarity_key.to_i
+        else
+          SkinItem.rarities[rarity_key] || SkinItem.rarities[rarity_key.sub("Mid-Spec", "Mil-Spec")]
+        end
+
+      rarity_name = rarity_value.present? ? SkinItem.rarities.key(rarity_value) : rarity_key
+      rarity_name_alias = rarity_name.to_s.sub("Mid-Spec", "Mil-Spec")
+
+      {
+        value: rarity_value,
+        name: rarity_name,
+        name_alias: rarity_name_alias
+      }
+    end
+
+    def apply_rarity_filter!(primary_conditions, binds, rarity)
+      normalized = normalized_rarity(rarity)
+      return if normalized[:value].blank? && normalized[:name].blank?
+
+      rarity_conditions = []
+
+      if normalized[:value].present?
+        rarity_conditions << "skin_items.rarity = :rarity"
+        binds[:rarity] = normalized[:value]
+      end
+
+      if normalized[:name].present?
+        rarity_conditions << "skins.rarity = :rarity_name"
+        binds[:rarity_name] = normalized[:name]
+
+        if normalized[:name_alias].present? && normalized[:name_alias] != normalized[:name]
+          rarity_conditions << "skins.rarity = :rarity_name_alias"
+          binds[:rarity_name_alias] = normalized[:name_alias]
+        end
+      end
+
+      primary_conditions << "(#{rarity_conditions.join(' OR ')})" if rarity_conditions.any?
+    end
+
     def context
       @context ||= begin
         rarity = options[:rarity]
@@ -33,8 +84,7 @@ module SkinItems
         primary_conditions = []
 
         if rarity.present?
-          primary_conditions << "skin_items.rarity = :rarity"
-          binds[:rarity] = rarity
+          apply_rarity_filter!(primary_conditions, binds, rarity)
         end
         if wear.present?
           primary_conditions << "skin_items.wear = :wear"

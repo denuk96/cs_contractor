@@ -18,7 +18,7 @@
         </div>
         <div class="col-md-3">
           <%= f.label :rarity, class: "form-label" %>
-          <%= f.select :rarity, SkinItem.rarities.to_a, { include_blank: "All Rarities", selected: params[:rarity] }, { class: "form-select" } %>
+          <%= f.select :rarity, rarity_filter_options, { include_blank: "All Rarities", selected: params[:rarity] }, { class: "form-select" } %>
         </div>
         <div class="col-md-3">
           <%= f.label :wear, "Quality", class: "form-label" %>

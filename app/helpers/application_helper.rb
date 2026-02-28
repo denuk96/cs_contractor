@@ -1,4 +1,11 @@
 module ApplicationHelper
+  def rarity_filter_options
+    @rarity_filter_options ||= begin
+      sticker_rarities = Skin.where(category: "stickers").distinct.pluck(:rarity).compact.sort
+      SkinItem.rarities.to_a + sticker_rarities.map { |r| [r, r] }
+    end
+  end
+
   def float_range_with_wear_chance(item)
     return "-" if item.float_min.nil? || item.float_max.nil?
 
