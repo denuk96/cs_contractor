@@ -1,4 +1,4 @@
-class Import
+module Import
   class SkinportApi
     URL = "https://api.skinport.com/v1/items?app_id=730&currency=USD".freeze
 

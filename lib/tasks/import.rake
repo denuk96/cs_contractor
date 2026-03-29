@@ -8,11 +8,10 @@ namespace :import do
   end
 
   task :prices, [:validate_last_run] => :environment do |_, args|
-    # Rails.logger = Logger.new(STDOUT)
-    Rails.logger = Logger.new(Rails.root.join('log', 'import.log'))
+    Rails.logger = Logger.new(STDOUT)
     Rails.logger.level = Logger::INFO
 
-    last_run_file = Rails.root.join('tmp', 'import_prices_last_run.txt')
+    last_run_file = Rails.root.join('storage', 'import_prices_last_run.txt')
     validate_last_run = args[:validate_last_run].to_s.downcase == 'true'
 
     if validate_last_run && File.exist?(last_run_file)
