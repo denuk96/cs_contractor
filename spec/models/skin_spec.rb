@@ -48,6 +48,15 @@ RSpec.describe Skin, type: :model do
       expect(skin.fn_probability_percent).to be_within(0.05).of(0.6)
     end
 
+    it "accounts for non-zero min_float in FN probability" do
+      # min_float=0.03, max_float=0.70, range=0.67
+      # overlap with FN [0, 0.07) = 0.07 - 0.03 = 0.04
+      # probability = 0.04 / 0.67 * 100 ≈ 5.97%
+      skin = build(:skin, min_float: 0.03, max_float: 0.70)
+
+      expect(skin.fn_probability_percent).to be_within(0.1).of(5.97)
+    end
+
     it "is 0% when the skin cannot have Factory New" do
       skin = build(:skin, min_float: 0.10, max_float: 0.70)
 

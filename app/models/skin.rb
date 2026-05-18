@@ -87,12 +87,15 @@ class Skin < ApplicationRecord
       return 0.0
     end
 
-    y = FACTORY_NEW_MAX_FLOAT / range
-    if range > FLOAT_RANGE_DECAY_START
-      y *= Math.exp(-FLOAT_RANGE_DECAY_K * (range - FLOAT_RANGE_DECAY_START))
-    end
+    max_float = min_float + range
+    fn_end = [max_float, FACTORY_NEW_MAX_FLOAT].min
+    overlap = fn_end - min_float
+    return 0.0 if overlap <= 0.0
 
-    percent = y * 100
+    percent = (overlap / range) * 100.0
+    if range > FLOAT_RANGE_DECAY_START
+      percent *= Math.exp(-FLOAT_RANGE_DECAY_K * (range - FLOAT_RANGE_DECAY_START))
+    end
     return 0.0 if percent.nan? || percent.infinite? || percent.negative?
 
     [percent, 100.0].min
