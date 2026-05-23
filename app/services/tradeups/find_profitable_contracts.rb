@@ -56,12 +56,13 @@ module Tradeups
         next unless next_rarity_name = next_rarity(rarity_name)
         next if @from_rarity && rarity_name != @from_rarity
 
-        # Get all potential outcomes for the next rarity (all wears)
+        # Get all potential outcomes for the next rarity (all wears).
+        # Outputs are always regular skins regardless of input souvenir mix.
         all_outcomes = SkinItem.joins(:skin)
                                .where(skins: { collection_name: collection },
                                       rarity: SkinItem.rarities[next_rarity_name],
-                                      stattrak:)
-                               .not_souvenir
+                                      stattrak:,
+                                      souvenir: false)
                                .have_prices
                                .distinct
 
@@ -130,12 +131,13 @@ module Tradeups
       SkinItem.joins(:skin)
               .where(skins: { collection_name: collection })
               .where(stattrak:, wear:)
-              .contractable
+              .where.not(rarity: %w[Extraordinary Contraband])
+              .where(skins: { category: SkinItem::CONTRACTABLE_CATEGORIES })
               .have_prices
               .group_by(&:rarity_before_type_cast)
               .transform_keys { |rk| SkinItem.rarities.key(rk) }
               .transform_values { |items| items.sort_by { |i| i.latest_steam_price.to_f } }
-        end
+    end
 
     def get_cheapest_fillers(collection, rarity_name, wear, stattrak, exclude_items = [])
       case @filler_strategy
@@ -146,7 +148,8 @@ module Tradeups
       end
     end
 
-    # Get cheapest items from ANY collection with matching rarity, wear, and stattrak
+    # Get cheapest items from ANY collection with matching rarity, wear, and stattrak.
+    # Souvenir skins are included as valid fillers since they produce regular outputs.
     def get_plain_cheapest_fillers(rarity_name, wear, stattrak, exclude_items = [])
       exclude_ids = exclude_items.map(&:id)
       next_rarity_name = next_rarity(rarity_name)
@@ -168,7 +171,8 @@ module Tradeups
               .where('wear <= ?', target_wear_value)
               .where(skins: { collection_name: valid_collections })
               .where.not(id: exclude_ids)
-              .contractable
+              .where.not(rarity: %w[Extraordinary Contraband])
+              .where(skins: { category: SkinItem::CONTRACTABLE_CATEGORIES })
               .have_prices
               .order('latest_steam_price ASC')
               .limit(10)
@@ -192,7 +196,8 @@ module Tradeups
               .where.not(skins: { collection_name: base_collection }) # other collections only
               .where.not(id: exclude_ids)
               .where('wear < ?', target_wear_value)                   # strictly BETTER wear than base
-              .contractable
+              .where.not(rarity: %w[Extraordinary Contraband])
+              .where(skins: { category: SkinItem::CONTRACTABLE_CATEGORIES })
               .have_prices
               .order(Arel.sql('wear ASC, latest_steam_price ASC'))    # best wear (FN/MW) then cheapest
               .limit(10)
