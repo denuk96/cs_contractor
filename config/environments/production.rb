@@ -87,4 +87,7 @@ Rails.application.configure do
   #
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+
+  MissionControl::Jobs.http_basic_auth_user = "dev"
+  MissionControl::Jobs.http_basic_auth_password = "secret"
 end

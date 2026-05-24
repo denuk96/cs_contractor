@@ -9,4 +9,9 @@ Rails.application.routes.draw do
   root "home#index"
 
   resources :skin_items, only: [:show]
+
+
+  resources :tradeup_searches, only: [:new, :create, :show]
+
+  mount MissionControl::Jobs::Engine, at: "/jobs"
 end
