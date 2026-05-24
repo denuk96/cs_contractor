@@ -36,7 +36,13 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="/">Home</a>
+              <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+              <%= link_to "Tradeup Finder", new_tradeup_search_path, class: "nav-link #{'active' if request.path.start_with?('/tradeup_searches')}" %>
+            </li>
+            <li class="nav-item">
+              <%= link_to "Jobs", "/jobs", class: "nav-link #{'active' if request.path.start_with?('/jobs')}" %>
             </li>
           </ul>
         </div>

@@ -1,0 +1,159 @@
+<div class="container mt-4">
+  <h2 class="mb-4">Tradeup Finder</h2>
+
+  <%= form_with url: tradeup_searches_path, method: :post, data: { turbo: false } do |f| %>
+    <%= hidden_field_tag "tradeup_search[skip_if_price_missing]", "0" %>
+    <%= hidden_field_tag "tradeup_search[consider_float]", "0" %>
+
+    <div class="card mb-4">
+      <div class="card-header fw-semibold">Parameters</div>
+      <div class="card-body">
+        <div class="row g-3">
+
+          <div class="col-md-2">
+            <label class="form-label">Fee multiplier</label>
+            <%= f.number_field :price_fee_multiplier, value: @params[:price_fee_multiplier],
+                  class: "form-control", step: 0.01, min: 0, max: 1,
+                  name: "tradeup_search[price_fee_multiplier]" %>
+            <div class="form-text">e.g. 0.85 for Steam 15% fee</div>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Max cost ($)</label>
+            <%= f.number_field :max_cost, value: @params[:max_cost],
+                  class: "form-control", step: 1, min: 0,
+                  name: "tradeup_search[max_cost]" %>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Min profit ($)</label>
+            <%= f.number_field :min_profit, value: @params[:min_profit],
+                  class: "form-control", step: 0.5, min: 0,
+                  name: "tradeup_search[min_profit]" %>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Cheapest fill count</label>
+            <%= f.number_field :cheapest_fill_count, value: @params[:cheapest_fill_count],
+                  class: "form-control", step: 1, min: 0, max: 9,
+                  name: "tradeup_search[cheapest_fill_count]" %>
+            <div class="form-text">Filler slots from any collection</div>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Min outcome lose (%)</label>
+            <%= f.number_field :minimum_outcome_lose, value: @params[:minimum_outcome_lose],
+                  class: "form-control", step: 5, min: 0, max: 100,
+                  name: "tradeup_search[minimum_outcome_lose]" %>
+            <div class="form-text">0 = allow any loss</div>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Results per collection</label>
+            <%= f.number_field :limit_per_collection, value: @params[:limit_per_collection],
+                  class: "form-control", step: 1, min: 1,
+                  name: "tradeup_search[limit_per_collection]" %>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Max unique inputs</label>
+            <%= f.number_field :max_unique_inputs, value: @params[:max_unique_inputs],
+                  class: "form-control", step: 1, min: 1, max: 10,
+                  name: "tradeup_search[max_unique_inputs]" %>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">From rarity</label>
+            <%= f.select :from_rarity,
+                  options_for_select([["All rarities", ""]] + TradeupSearchesController::RARITY_OPTIONS.map { |r| [r, r] }, @params[:from_rarity]),
+                  {}, class: "form-select", name: "tradeup_search[from_rarity]" %>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Filler strategy</label>
+            <%= f.select :filler_strategy,
+                  options_for_select([["Cheapest any", "cheapest_any"], ["Mixed high wear", "mixed_high_wear"]], @params[:filler_strategy]),
+                  {}, class: "form-select", name: "tradeup_search[filler_strategy]" %>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Outcome price type</label>
+            <%= f.select :outcome_price_type,
+                  options_for_select([["Latest Steam price", "latest_steam_price"], ["Latest order price", "latest_steam_order_price"]], @params[:outcome_price_type]),
+                  {}, class: "form-select", name: "tradeup_search[outcome_price_type]" %>
+          </div>
+
+          <div class="col-md-2 d-flex flex-column justify-content-center gap-2 pt-3">
+            <div class="form-check">
+              <%= check_box_tag "tradeup_search[skip_if_price_missing]", "1",
+                    @params[:skip_if_price_missing].to_s == "1",
+                    class: "form-check-input" %>
+              <label class="form-check-label">Skip if price missing</label>
+            </div>
+            <div class="form-check">
+              <%= check_box_tag "tradeup_search[consider_float]", "1",
+                    @params[:consider_float].to_s == "1",
+                    class: "form-check-input" %>
+              <label class="form-check-label">Consider float</label>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="card-footer">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-search"></i> Find profitable contracts
+        </button>
+      </div>
+    </div>
+  <% end %>
+
+  <% if @recent_searches.any? %>
+    <h5 class="mb-3">Recent searches</h5>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Status</th>
+            <th>Rarity</th>
+            <th>Fee</th>
+            <th>Max cost</th>
+            <th>Min profit</th>
+            <th>Fill</th>
+            <th>Contracts</th>
+            <th>Started</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @recent_searches.each do |s| %>
+            <% p = JSON.parse(s.params_json) rescue {} %>
+            <tr>
+              <td class="text-muted small">#<%= s.id %></td>
+              <td>
+                <% if s.done? %>
+                  <span class="badge bg-success">done</span>
+                <% elsif s.status == "running" %>
+                  <span class="badge bg-primary">
+                    <%= s.completed_jobs %>/<%= s.total_jobs %>
+                  </span>
+                <% else %>
+                  <span class="badge bg-secondary"><%= s.status %></span>
+                <% end %>
+              </td>
+              <td class="small"><%= p["from_rarity"].presence || "all" %></td>
+              <td class="small"><%= p["price_fee_multiplier"] %></td>
+              <td class="small">$<%= p["max_cost"] %></td>
+              <td class="small">$<%= p["min_profit"] %></td>
+              <td class="small"><%= p["cheapest_fill_count"] %></td>
+              <td class="small"><%= s.tradeup_contracts.count %></td>
+              <td class="small text-muted"><%= s.created_at.strftime("%m/%d %H:%M") %></td>
+              <td><%= link_to "View", tradeup_search_path(s), class: "btn btn-outline-primary btn-sm" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

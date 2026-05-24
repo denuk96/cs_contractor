@@ -48,6 +48,12 @@ module Tradeups
       rank(results)
     end
 
+    def call_for(collection:, wear:, stattrak:)
+      results = []
+      generate_contracts(collection:, wear:, stattrak:, results:)
+      results
+    end
+
     private
 
     def generate_contracts(collection:, wear:, stattrak: false, results: [])

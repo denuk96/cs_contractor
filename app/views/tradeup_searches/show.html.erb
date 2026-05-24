@@ -1,0 +1,110 @@
+<% unless @search.done? %>
+  <meta http-equiv="refresh" content="2">
+<% end %>
+
+<div class="container mt-4">
+  <div class="d-flex align-items-center gap-3 mb-3">
+    <h2 class="mb-0">Tradeup Search #<%= @search.id %></h2>
+    <%= link_to "New search", new_tradeup_search_path, class: "btn btn-outline-secondary btn-sm" %>
+  </div>
+
+  <% if @search.total_jobs %>
+    <div class="mb-4">
+      <div class="d-flex justify-content-between mb-1">
+        <span class="text-muted small">
+          <% if @search.done? %>
+            Done &mdash; <%= @contracts.size %> contract<%= @contracts.size == 1 ? "" : "s" %> found
+          <% else %>
+            Running &mdash; <%= @search.completed_jobs %>/<%= @search.total_jobs %> jobs &middot; <%= @contracts.size %> found so far
+          <% end %>
+        </span>
+        <span class="text-muted small"><%= @search.progress_pct %>%</span>
+      </div>
+      <div class="progress" style="height: 6px;">
+        <div class="progress-bar <%= @search.done? ? 'bg-success' : 'progress-bar-striped progress-bar-animated' %>"
+             style="width: <%= @search.progress_pct %>%"></div>
+      </div>
+    </div>
+  <% else %>
+    <div class="alert alert-info">Queuing jobs&hellip;</div>
+  <% end %>
+
+  <% fill_count = JSON.parse(@search.params_json)["cheapest_fill_count"].to_i rescue 0 %>
+
+  <% if @contracts.empty? && @search.done? %>
+    <div class="alert alert-warning">No profitable contracts found with these parameters.</div>
+  <% end %>
+
+  <% @contracts.each_with_index do |tc, i| %>
+    <% c = tc.parsed_data %>
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+          <strong>#<%= i + 1 %></strong>
+          &nbsp;
+          <span class="badge bg-secondary"><%= c[:collection] %></span>
+          <span class="badge bg-dark"><%= c[:wear] %></span>
+          <span class="text-muted"><%= c[:from_rarity] %> &rarr; <%= c[:to_rarity] %></span>
+        </span>
+        <span class="d-flex gap-2">
+          <span class="badge bg-secondary">cost $<%= c[:cost].round(2) %></span>
+          <span class="badge bg-primary">EV $<%= c[:expected_value].round(2) %></span>
+          <span class="badge bg-success">profit $<%= c[:profit].round(2) %></span>
+          <span class="badge bg-warning text-dark">
+            min $<%= c[:minimal_expected_value].round(2) %> / max $<%= c[:maximum_expected_value].round(2) %>
+          </span>
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="text-muted mb-2">Input stack (10 items)</h6>
+            <ul class="list-group list-group-flush">
+              <% c[:stack].each do |s| %>
+                <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-0">
+                  <span>
+                    <span class="badge bg-dark me-1"><%= s[:qty] %>x</span>
+                    <%= link_to s[:item_name], skin_item_path(s[:item_id]), class: "text-decoration-none" %>
+                    <% if s[:souvenir] %>
+                      <span class="badge bg-warning text-dark ms-1">SV</span>
+                    <% end %>
+                  </span>
+                  <span class="text-muted small">$<%= s[:item_price] %></span>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+
+          <div class="col-md-6">
+            <h6 class="text-muted mb-2">Possible outcomes</h6>
+            <ul class="list-group list-group-flush">
+              <% c[:outcomes].each do |o| %>
+                <%
+                  prob = o[:probability] * 100
+                  prob -= prob / 100.0 * (fill_count * 10) if fill_count > 0
+                %>
+                <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-0">
+                  <span>
+                    <span class="badge bg-secondary me-1"><%= prob.round(1) %>%</span>
+                    <%= link_to o[:item_name], skin_item_path(o[:item_id]), class: "text-decoration-none" %>
+                  </span>
+                  <span class="text-muted small">$<%= o[:price] %></span>
+                </li>
+              <% end %>
+              <% if fill_count > 0 %>
+                <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-0 text-muted">
+                  <span>
+                    <span class="badge bg-danger me-1"><%= (fill_count * 10.0).round(1) %>%</span>
+                    Trash outcome
+                  </span>
+                  <span class="small">$0</span>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
