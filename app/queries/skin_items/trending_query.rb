@@ -76,6 +76,11 @@ module SkinItems
         end_date = options[:end_date]
         min_offervolume = options[:min_offervolume]
         max_offervolume = options[:max_offervolume]
+        min_buyordervolume = options[:min_buyordervolume]
+        max_buyordervolume = options[:max_buyordervolume]
+        min_buy_wall_ratio = options[:min_buy_wall_ratio]
+        min_turnover = options[:min_turnover]
+        starred_only = options[:starred_only]
         stattrak = options[:stattrak]
         souvenir = options[:souvenir]
         collection = options[:collection]
@@ -113,6 +118,9 @@ module SkinItems
         if category.present?
           primary_conditions << "skins.category = :category"
           binds[:category] = category
+        end
+        if starred_only
+          primary_conditions << "skin_items.id IN (SELECT skin_item_id FROM starred_skin_items)"
         end
 
         if collection.present?
@@ -153,7 +161,7 @@ module SkinItems
         end
 
         final_where_conditions = []
-        if name_query.blank? && sort_by.blank? && collection.blank?
+        if name_query.blank? && sort_by.blank? && collection.blank? && !starred_only
           final_where_conditions << "h1.id IS NOT NULL AND h2.id IS NOT NULL"
           final_where_conditions << "h1.soldtoday > h2.soldtoday"
           final_where_conditions << "h1.buyordervolume > h2.buyordervolume"
@@ -175,6 +183,22 @@ module SkinItems
         if max_offervolume.present?
           final_where_conditions << "h1.offervolume <= :max_offervolume"
           binds[:max_offervolume] = max_offervolume
+        end
+        if min_buyordervolume.present?
+          final_where_conditions << "h1.buyordervolume >= :min_buyordervolume"
+          binds[:min_buyordervolume] = min_buyordervolume
+        end
+        if max_buyordervolume.present?
+          final_where_conditions << "h1.buyordervolume <= :max_buyordervolume"
+          binds[:max_buyordervolume] = max_buyordervolume
+        end
+        if min_buy_wall_ratio.present?
+          final_where_conditions << "(CAST(h1.buyordervolume AS REAL) / NULLIF(h1.offervolume, 0)) >= :min_buy_wall_ratio"
+          binds[:min_buy_wall_ratio] = min_buy_wall_ratio.to_f
+        end
+        if min_turnover.present?
+          final_where_conditions << "(CAST(h1.soldtoday AS REAL) / NULLIF(h1.offervolume, 0)) * 100 >= :min_turnover"
+          binds[:min_turnover] = min_turnover.to_f
         end
 
         final_where = final_where_conditions.empty? ? "" : "WHERE #{final_where_conditions.join(' AND ')}"

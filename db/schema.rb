@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_10_121739) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_31_000001) do
   create_table "skin_item_histories", force: :cascade do |t|
     t.integer "all_markets_quantity"
     t.float "all_markets_weighted_median_price"
@@ -76,6 +76,37 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_10_121739) do
     t.index ["object_id"], name: "index_skins_on_object_id", unique: true
   end
 
+  create_table "starred_skin_items", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "skin_item_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["skin_item_id"], name: "index_starred_skin_items_on_skin_item_id"
+    t.index ["user_id", "skin_item_id"], name: "index_starred_skin_items_on_user_id_and_skin_item_id", unique: true
+  end
+
+  create_table "tradeup_contracts", force: :cascade do |t|
+    t.string "collection", null: false
+    t.datetime "created_at", null: false
+    t.text "data", null: false
+    t.float "profit", null: false
+    t.integer "tradeup_search_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tradeup_search_id", "profit"], name: "index_tradeup_contracts_on_tradeup_search_id_and_profit"
+    t.index ["tradeup_search_id"], name: "index_tradeup_contracts_on_tradeup_search_id"
+  end
+
+  create_table "tradeup_searches", force: :cascade do |t|
+    t.integer "completed_jobs", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.text "params_json", null: false
+    t.string "status", default: "pending", null: false
+    t.integer "total_jobs"
+    t.datetime "updated_at", null: false
+  end
+
   add_foreign_key "skin_item_histories", "skin_items"
   add_foreign_key "skin_items", "skins"
+  add_foreign_key "starred_skin_items", "skin_items"
+  add_foreign_key "tradeup_contracts", "tradeup_searches"
 end

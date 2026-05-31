@@ -22,8 +22,15 @@ class HomeController < ApplicationController
       end_date: params[:end_date],
       min_offervolume: params[:min_offervolume],
       max_offervolume: params[:max_offervolume],
+      min_buyordervolume: params[:min_buyordervolume],
+      max_buyordervolume: params[:max_buyordervolume],
+      min_buy_wall_ratio: params[:min_buy_wall_ratio],
+      min_turnover: params[:min_turnover],
+      starred_only: params[:starred_only] == "1",
       limit: limit
     ).call
+
+    @starred_ids = StarredSkinItem.pluck(:skin_item_id).to_set
 
     respond_to do |format|
       format.html do

@@ -62,6 +62,28 @@
           <%= f.number_field :max_offervolume, value: params[:max_offervolume], class: "form-control" %>
         </div>
         <div class="col-md-3">
+          <%= f.label :min_buyordervolume, "Min Buy Order Vol", class: "form-label" %>
+          <%= f.number_field :min_buyordervolume, value: params[:min_buyordervolume], class: "form-control" %>
+        </div>
+        <div class="col-md-3">
+          <%= f.label :max_buyordervolume, "Max Buy Order Vol", class: "form-label" %>
+          <%= f.number_field :max_buyordervolume, value: params[:max_buyordervolume], class: "form-control" %>
+        </div>
+        <div class="col-md-3">
+          <%= f.label :min_buy_wall_ratio, "Min Buy Wall (x)", class: "form-label" %>
+          <%= f.number_field :min_buy_wall_ratio, value: params[:min_buy_wall_ratio], class: "form-control", step: 0.1 %>
+        </div>
+        <div class="col-md-3">
+          <%= f.label :min_turnover, "Min Turnover (%)", class: "form-label" %>
+          <%= f.number_field :min_turnover, value: params[:min_turnover], class: "form-control", step: 0.1 %>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <div class="form-check">
+            <%= f.check_box :starred_only, { checked: params[:starred_only] == "1", class: "form-check-input" }, "1", "0" %>
+            <%= f.label :starred_only, "Starred only", class: "form-check-label" %>
+          </div>
+        </div>
+        <div class="col-md-3">
           <%= f.label :start_date, "Start Date (Compare From)", class: "form-label" %>
           <%= f.date_field :start_date, value: params[:start_date], class: "form-control" %>
         </div>
@@ -87,6 +109,7 @@
       <table class="table table-striped table-hover align-middle">
         <thead class="table-dark">
           <tr>
+            <th><i class="bi bi-star-fill"></i></th>
             <th>Name</th>
             <th>Collection</th>
             <th>Rarity</th>
@@ -116,6 +139,9 @@
         <tbody>
           <% @trending_items.each do |item| %>
             <tr>
+              <td>
+                <%= render "stars/star", skin_item_id: item.id, starred: @starred_ids.include?(item.id) %>
+              </td>
               <td>
                 <%= link_to skin_item_path(item), class: "me-2", target: "_blank" do %>
                   <i class="bi bi-graph-up"></i>

@@ -1,0 +1,20 @@
+<%# locals: skin_item_id, starred %>
+<%= turbo_frame_tag "star_skin_item_#{skin_item_id}", class: "d-inline" do %>
+  <% if starred %>
+    <%= button_to skin_item_star_path(skin_item_id),
+          method: :delete,
+          class: "btn btn-link p-0 border-0 text-warning lh-1",
+          title: "Remove from starred",
+          aria: { label: "Remove from starred" } do %>
+      <i class="bi bi-star-fill fs-5"></i>
+    <% end %>
+  <% else %>
+    <%= button_to skin_item_star_path(skin_item_id),
+          method: :post,
+          class: "btn btn-link p-0 border-0 text-muted lh-1",
+          title: "Add to starred",
+          aria: { label: "Add to starred" } do %>
+      <i class="bi bi-star fs-5"></i>
+    <% end %>
+  <% end %>
+<% end %>
