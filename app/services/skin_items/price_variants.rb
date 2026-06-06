@@ -7,19 +7,19 @@ module SkinItems
     WEAR_ORDER = SkinItem.wears.keys.freeze
 
     FINISHES = [
-      ["normal",   "Normal",    ->(s) { !s.souvenir && !s.stattrak }],
-      ["stattrak", "StatTrak™", ->(s) { s.stattrak }],
-      ["souvenir", "Souvenir",  ->(s) { s.souvenir }]
+      ["Normal",    ->(s) { !s.souvenir && !s.stattrak }],
+      ["StatTrak™", ->(s) { s.stattrak }],
+      ["Souvenir",  ->(s) { s.souvenir }]
     ].freeze
 
-    Result = Data.define(:image, :wears, :rows, :current_finish)
+    Result = Data.define(:image, :wears, :rows)
 
     def initialize(skin_item)
       @skin_item = skin_item
     end
 
     def call
-      Result.new(image:, wears:, rows:, current_finish:)
+      Result.new(image:, wears:, rows:)
     end
 
     private
@@ -46,20 +46,12 @@ module SkinItems
 
     # Rows: one per finish, skipped when the skin has no items of that finish.
     def rows
-      FINISHES.filter_map do |key, label, matcher|
+      FINISHES.filter_map do |label, matcher|
         items = siblings.select(&matcher)
         next if items.empty?
 
-        { key: key, label: label, items_by_wear: items.index_by(&:wear) }
+        { label: label, items_by_wear: items.index_by(&:wear) }
       end
-    end
-
-    # Which finish toggle should be open on load (the one being viewed).
-    def current_finish
-      return "souvenir" if skin_item.souvenir?
-      return "stattrak" if skin_item.stattrak?
-
-      "normal"
     end
   end
 end

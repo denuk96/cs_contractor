@@ -231,46 +231,32 @@
             </div>
             <div class="col-md-8 col-lg-9">
               <% if @variant_rows.any? %>
-                <div data-controller="variant-selector" data-variant-selector-current-value="<%= @current_finish %>">
-                  <!-- Finish toggle: Normal / StatTrak™ / Souvenir -->
-                  <div class="btn-group flex-wrap mb-3" role="group" aria-label="Finish selector">
-                    <% @variant_rows.each do |row| %>
-                      <button type="button"
-                              class="btn btn-outline-primary"
-                              data-variant-selector-target="tab"
-                              data-finish="<%= row[:key] %>"
-                              data-action="variant-selector#select">
-                        <%= row[:label] %>
-                      </button>
-                    <% end %>
-                  </div>
-
-                  <!-- One wear-price panel per finish; the controller shows the active one. -->
-                  <% @variant_rows.each do |row| %>
-                    <div data-variant-selector-target="panel" data-finish="<%= row[:key] %>" hidden>
-                      <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-2">
-                        <% @variant_wears.each do |wear| %>
-                          <div class="col">
-                            <% if (variant = row[:items_by_wear][wear]) %>
-                              <% current = variant.id == @skin_item.id %>
-                              <%= link_to skin_item_path(variant),
-                                    class: "btn btn-sm w-100 #{current ? 'btn-primary' : 'btn-outline-secondary'}",
-                                    "aria-current": (current ? "true" : nil) do %>
-                                <span class="d-block small text-uppercase"><%= wear_abbreviation(wear) || wear %></span>
-                                <strong><%= variant.latest_steam_price ? number_to_currency(variant.latest_steam_price) : "—" %></strong>
-                              <% end %>
-                            <% else %>
-                              <div class="btn btn-sm w-100 disabled text-muted">
-                                <span class="d-block small text-uppercase"><%= wear_abbreviation(wear) || wear %></span>
-                                &ndash;
-                              </div>
+                <!-- All finishes shown at once: Normal / StatTrak™ / Souvenir -->
+                <% @variant_rows.each do |row| %>
+                  <div class="mb-3">
+                    <div class="fw-semibold small text-uppercase text-muted mb-1"><%= row[:label] %></div>
+                    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-2">
+                      <% @variant_wears.each do |wear| %>
+                        <div class="col">
+                          <% if (variant = row[:items_by_wear][wear]) %>
+                            <% current = variant.id == @skin_item.id %>
+                            <%= link_to skin_item_path(variant),
+                                  class: "btn btn-sm w-100 #{current ? 'btn-primary' : 'btn-outline-secondary'}",
+                                  "aria-current": (current ? "true" : nil) do %>
+                              <span class="d-block small text-uppercase"><%= wear_abbreviation(wear) || wear %></span>
+                              <strong><%= variant.latest_steam_price ? number_to_currency(variant.latest_steam_price) : "—" %></strong>
                             <% end %>
-                          </div>
-                        <% end %>
-                      </div>
+                          <% else %>
+                            <div class="btn btn-sm w-100 disabled text-muted">
+                              <span class="d-block small text-uppercase"><%= wear_abbreviation(wear) || wear %></span>
+                              &ndash;
+                            </div>
+                          <% end %>
+                        </div>
+                      <% end %>
                     </div>
-                  <% end %>
-                </div>
+                  </div>
+                <% end %>
               <% else %>
                 <div class="alert alert-info mb-0">No market variants available for this skin yet.</div>
               <% end %>

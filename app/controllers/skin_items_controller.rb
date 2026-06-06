@@ -10,10 +10,9 @@ class SkinItemsController < ApplicationController
     # All market variants (wear x finish) for the same base skin, so the page
     # can surface the Normal / StatTrak™ / Souvenir price grid in one place.
     variants = SkinItems::PriceVariants.new(@skin_item).call
-    @skin_image     = variants.image
-    @variant_wears  = variants.wears
-    @variant_rows   = variants.rows
-    @current_finish = variants.current_finish
+    @skin_image    = variants.image
+    @variant_wears = variants.wears
+    @variant_rows  = variants.rows
 
     history = @skin_item.skin_item_histories.order(date: :asc)
     latest_history = history.last
