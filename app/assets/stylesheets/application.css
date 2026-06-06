@@ -8,3 +8,20 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+/* "Latest Metadata" disclosure card: a native <details> toggle (no JS needed).
+   Hide the default marker, make the whole header a button, and rotate our own
+   chevron to reflect the open/closed state. */
+details.metadata-toggle > summary {
+  cursor: pointer;
+  list-style: none;
+}
+details.metadata-toggle > summary::-webkit-details-marker {
+  display: none;
+}
+details.metadata-toggle > summary .bi-chevron-right {
+  transition: transform 0.2s ease-in-out;
+}
+details.metadata-toggle[open] > summary .bi-chevron-right {
+  transform: rotate(90deg);
+}

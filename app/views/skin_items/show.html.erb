@@ -398,18 +398,23 @@
     </div>
   </div>
 
-  <% if @latest_metadata.present? %>
-    <div class="row mb-5">
-      <div class="col-md-12">
-        <h3>Latest Metadata</h3>
-        <div class="card">
-          <div class="card-body">
-            <pre><%= JSON.pretty_generate(@latest_metadata) %></pre>
-          </div>
+  <div class="row mb-5">
+    <div class="col-md-12">
+      <details class="card metadata-toggle">
+        <summary class="card-header fw-semibold d-flex align-items-center gap-2">
+          <i class="bi bi-chevron-right"></i>
+          Latest Metadata
+        </summary>
+        <div class="card-body">
+          <% if @latest_metadata.present? %>
+            <pre class="mb-0"><%= JSON.pretty_generate(@latest_metadata) %></pre>
+          <% else %>
+            <p class="text-muted mb-0">No metadata recorded for this item yet.</p>
+          <% end %>
         </div>
-      </div>
+      </details>
     </div>
-  <% end %>
+  </div>
 
   <%= link_to "Back to Trending", root_path, class: "btn btn-secondary mb-5" %>
 </div>
