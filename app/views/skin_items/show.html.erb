@@ -257,7 +257,7 @@
                                     class: "btn btn-sm w-100 #{current ? 'btn-primary' : 'btn-outline-secondary'}",
                                     "aria-current": (current ? "true" : nil) do %>
                                 <span class="d-block small text-uppercase"><%= wear_abbreviation(wear) || wear %></span>
-                                <strong><%= number_to_currency(variant.latest_steam_price) %></strong>
+                                <strong><%= variant.latest_steam_price ? number_to_currency(variant.latest_steam_price) : "—" %></strong>
                               <% end %>
                             <% else %>
                               <div class="btn btn-sm w-100 disabled text-muted">
@@ -272,7 +272,7 @@
                   <% end %>
                 </div>
               <% else %>
-                <div class="alert alert-info mb-0">No priced variants available for this skin yet.</div>
+                <div class="alert alert-info mb-0">No market variants available for this skin yet.</div>
               <% end %>
             </div>
           </div>

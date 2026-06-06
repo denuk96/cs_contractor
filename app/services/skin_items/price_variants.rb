@@ -26,17 +26,20 @@ module SkinItems
 
     attr_reader :skin_item
 
+    # Every variant of the skin, priced or not. The selector is meant to show
+    # what exists (so the Souvenir toggle still appears for an unpriced souvenir
+    # listing); cells render a "—" where there's no quote yet.
     def siblings
-      @siblings ||= SkinItem.where(skin_id: skin_item.skin_id).have_prices.to_a
+      @siblings ||= SkinItem.where(skin_id: skin_item.skin_id).to_a
     end
 
     # `itemimage` from the Steam price feed lives on each SkinItem (see
-    # Import::SkinItems); fall back to other priced variants if this one is blank.
+    # Import::SkinItems); fall back to other variants if this one is blank.
     def image
       skin_item.image.presence || siblings.find { |s| s.image.present? }&.image
     end
 
-    # Columns: only wears that actually have at least one priced variant.
+    # Columns: only wears that actually have at least one variant.
     def wears
       WEAR_ORDER.select { |wear| siblings.any? { |s| s.wear == wear } }
     end
