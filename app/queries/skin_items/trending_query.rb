@@ -99,9 +99,14 @@ module SkinItems
           primary_conditions << "skin_items.stattrak = :stattrak"
           binds[:stattrak] = (stattrak == "true")
         end
-        if souvenir.in?(%w[true false])
-          primary_conditions << "skin_items.souvenir = :souvenir"
-          binds[:souvenir] = (souvenir == "true")
+        # Souvenir is decided by the real presence of a priced souvenir listing,
+        # not just the boolean flag: "Yes" requires an actual price, so items
+        # only tagged souvenir (e.g. seeded/imported without a quote) drop out.
+        case souvenir
+        when "true"
+          primary_conditions << "skin_items.souvenir = 1 AND skin_items.latest_steam_price IS NOT NULL"
+        when "false"
+          primary_conditions << "skin_items.souvenir = 0"
         end
         if min_price.present?
           primary_conditions << "skin_items.latest_steam_price >= :min_price"

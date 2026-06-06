@@ -186,8 +186,6 @@ ActiveRecord::Base.transaction do
       collection_name: attrs[:collection],
       rarity: attrs[:rarity],
       category: attrs[:category],
-      # Souvenirs are craftable for everything since the CS2 Souvenir update.
-      souvenir: true,
       stattrak: attrs.fetch(:stattrak, false),
       min_float: attrs[:min_float],
       max_float: attrs[:max_float],
@@ -235,6 +233,10 @@ ActiveRecord::Base.transaction do
         SkinItemHistory.upsert_all(rows, unique_by: %i[skin_item_id date])
       end
     end
+
+    # Derive the skin-level souvenir flag from reality: a skin counts as
+    # souvenir only when it actually has a priced souvenir listing.
+    skin.update!(souvenir: SkinItem.where(skin_id: skin.id, souvenir: true).have_prices.exists?)
   end
 end
 
