@@ -22,6 +22,10 @@ WEAR_PRICE_FACTORS = {
 # StatTrak typically commands a premium over the vanilla item.
 STATTRAK_PRICE_FACTOR = 1.6
 
+# Souvenir counterparts (now craftable since the CS2 Souvenir update) usually
+# carry a premium over the vanilla item too.
+SOUVENIR_PRICE_FACTOR = 1.45
+
 # name, weapon_id are used to build the steam market name + weapon hash.
 SKINS = [
   {
@@ -128,6 +132,13 @@ def steam_market_name(base, wear, stattrak:, souvenir:)
   "#{prefix}#{base} (#{wear})"
 end
 
+# A real PNG placeholder so the show page has an image to render offline. In
+# production `Import::Skins` fills `skins.image` from the CSGO-API instead.
+def placeholder_image(base)
+  text = ERB::Util.url_encode(base.gsub(" | ", "\n"))
+  "https://placehold.co/512x384/1b1f24/e9ecef.png?text=#{text}"
+end
+
 # Build a price-history series that trends "up" (rising demand, shrinking
 # supply) so seeded items surface on the default trending view, which compares
 # the newest snapshot against the oldest.
@@ -175,7 +186,8 @@ ActiveRecord::Base.transaction do
       collection_name: attrs[:collection],
       rarity: attrs[:rarity],
       category: attrs[:category],
-      souvenir: attrs.fetch(:souvenir, false),
+      # Souvenirs are craftable for everything since the CS2 Souvenir update.
+      souvenir: true,
       stattrak: attrs.fetch(:stattrak, false),
       min_float: attrs[:min_float],
       max_float: attrs[:max_float],
@@ -185,15 +197,17 @@ ActiveRecord::Base.transaction do
     )
     skin.save!
 
-    # Build (vanilla, stattrak, souvenir) variants requested for this skin.
+    # Build (vanilla, stattrak, souvenir) variants for this skin. Souvenir is
+    # always generated now that every skin can be crafted into one.
     variants = [{ stattrak: false, souvenir: false }]
     variants << { stattrak: true, souvenir: false } if attrs.fetch(:stattrak, false)
-    variants << { stattrak: false, souvenir: true } if attrs.fetch(:souvenir, false)
+    variants << { stattrak: false, souvenir: true }
 
     variants.each do |variant|
       attrs[:wears].each do |wear|
         wear_price = attrs[:fn_price] * WEAR_PRICE_FACTORS.fetch(wear)
         wear_price *= STATTRAK_PRICE_FACTOR if variant[:stattrak]
+        wear_price *= SOUVENIR_PRICE_FACTOR if variant[:souvenir]
         wear_price = wear_price.round(2)
 
         name = steam_market_name(attrs[:base], wear,
@@ -206,6 +220,7 @@ ActiveRecord::Base.transaction do
           wear: wear,
           souvenir: variant[:souvenir],
           stattrak: variant[:stattrak],
+          image: placeholder_image(attrs[:base]),
           latest_steam_price: wear_price,
           latest_steam_order_price: (wear_price * 0.9).round(2),
           last_steam_price_updated_at: Time.current,

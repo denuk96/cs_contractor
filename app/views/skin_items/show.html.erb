@@ -210,6 +210,77 @@
     </div>
   </div>
 
+  <!-- Prices & Variants Section -->
+  <div class="row mb-5">
+    <div class="col-md-12">
+      <h3>
+        Prices &amp; Variants
+        <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="What is this?" data-bs-content="Every market variant of this skin in one place. Pick a wear to jump to that listing. With the CS2 Souvenir update these can now be crafted, so a Souvenir counterpart is shown alongside the Normal and StatTrak™ prices."></i>
+      </h3>
+      <div class="card">
+        <div class="card-body">
+          <div class="row g-4 align-items-center">
+            <div class="col-md-4 col-lg-3 text-center">
+              <% if @skin_image.present? %>
+                <%= image_tag @skin_image, alt: @skin_item.name, class: "img-fluid", loading: "lazy" %>
+              <% else %>
+                <div class="d-flex align-items-center justify-content-center bg-light rounded text-muted" style="height: 180px;">
+                  <i class="bi bi-image" style="font-size: 2.5rem;"></i>
+                </div>
+              <% end %>
+            </div>
+            <div class="col-md-8 col-lg-9">
+              <% if @variant_rows.any? %>
+                <div data-controller="variant-selector" data-variant-selector-current-value="<%= @current_finish %>">
+                  <!-- Finish toggle: Normal / StatTrak™ / Souvenir -->
+                  <div class="btn-group flex-wrap mb-3" role="group" aria-label="Finish selector">
+                    <% @variant_rows.each do |row| %>
+                      <button type="button"
+                              class="btn btn-outline-primary"
+                              data-variant-selector-target="tab"
+                              data-finish="<%= row[:key] %>"
+                              data-action="variant-selector#select">
+                        <%= row[:label] %>
+                      </button>
+                    <% end %>
+                  </div>
+
+                  <!-- One wear-price panel per finish; the controller shows the active one. -->
+                  <% @variant_rows.each do |row| %>
+                    <div data-variant-selector-target="panel" data-finish="<%= row[:key] %>" hidden>
+                      <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-2">
+                        <% @variant_wears.each do |wear| %>
+                          <div class="col">
+                            <% if (variant = row[:items_by_wear][wear]) %>
+                              <% current = variant.id == @skin_item.id %>
+                              <%= link_to skin_item_path(variant),
+                                    class: "btn btn-sm w-100 #{current ? 'btn-primary' : 'btn-outline-secondary'}",
+                                    "aria-current": (current ? "true" : nil) do %>
+                                <span class="d-block small text-uppercase"><%= wear_abbreviation(wear) || wear %></span>
+                                <strong><%= number_to_currency(variant.latest_steam_price) %></strong>
+                              <% end %>
+                            <% else %>
+                              <div class="btn btn-sm w-100 disabled text-muted">
+                                <span class="d-block small text-uppercase"><%= wear_abbreviation(wear) || wear %></span>
+                                &ndash;
+                              </div>
+                            <% end %>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              <% else %>
+                <div class="alert alert-info mb-0">No priced variants available for this skin yet.</div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Charts Section -->
   <div class="row">
     <!-- 0. Supply Runover Dashboard (New) -->

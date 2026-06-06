@@ -27,6 +27,7 @@ module Import
              souvenir: price["issouvenir"],
              stattrak: price["isstattrak"],
              skin_id: skin.id,
+             image: price["itemimage"],
              latest_steam_price:,
              latest_steam_order_price:,
              last_steam_price_updated_at: Time.zone.now

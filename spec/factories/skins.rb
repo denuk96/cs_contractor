@@ -3,20 +3,20 @@
 # Table name: skins
 #
 #  id              :integer          not null, primary key
+#  category        :string
+#  collection_name :string
+#  crates          :text
+#  created_at      :datetime         not null
+#  max_float       :float
+#  min_float       :float
 #  name            :string
 #  object_id       :string
-#  collection_name :string
 #  rarity          :string
 #  souvenir        :boolean
 #  stattrak        :boolean
-#  category        :string
-#  min_float       :float
-#  max_float       :float
-#  wears           :text
-#  crates          :text
-#  weapon          :text
-#  created_at      :datetime         not null
 #  updated_at      :datetime         not null
+#  weapon          :text
+#  wears           :text
 #
 # Indexes
 #

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_31_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_06_000002) do
   create_table "skin_item_histories", force: :cascade do |t|
     t.integer "all_markets_quantity"
     t.float "all_markets_weighted_median_price"
@@ -42,6 +42,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_31_000001) do
 
   create_table "skin_items", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.string "image"
     t.datetime "last_steam_price_updated_at"
     t.float "latest_steam_order_price"
     t.float "latest_steam_price"
