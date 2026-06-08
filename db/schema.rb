@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_06_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_08_000001) do
   create_table "skin_item_histories", force: :cascade do |t|
     t.integer "all_markets_quantity"
     t.float "all_markets_weighted_median_price"
@@ -38,6 +38,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_000002) do
     t.datetime "updated_at", null: false
     t.index ["skin_item_id", "date"], name: "index_skin_item_histories_on_skin_item_id_and_date", unique: true
     t.index ["skin_item_id"], name: "index_skin_item_histories_on_skin_item_id"
+  end
+
+  create_table "skin_item_history_prices", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "kind", default: "offer", null: false
+    t.float "price"
+    t.integer "quantity"
+    t.integer "skin_item_history_id", null: false
+    t.string "source", null: false
+    t.datetime "source_updated_at"
+    t.datetime "updated_at", null: false
+    t.index ["skin_item_history_id", "source"], name: "idx_sihp_on_history_and_source", unique: true
+    t.index ["source"], name: "index_skin_item_history_prices_on_source"
   end
 
   create_table "skin_items", force: :cascade do |t|
@@ -107,6 +120,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_000002) do
   end
 
   add_foreign_key "skin_item_histories", "skin_items"
+  add_foreign_key "skin_item_history_prices", "skin_item_histories"
   add_foreign_key "skin_items", "skins"
   add_foreign_key "starred_skin_items", "skin_items"
   add_foreign_key "tradeup_contracts", "tradeup_searches"

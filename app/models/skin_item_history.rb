@@ -36,6 +36,7 @@
 
 class SkinItemHistory < ApplicationRecord
   belongs_to :skin_item
+  has_many :market_prices, class_name: "SkinItemHistoryPrice", dependent: :delete_all
 
   serialize :metadata, type: Hash, default: {}, coder: JSON
 end

@@ -40,7 +40,7 @@ module Import
                                               "price" => find_valid_price(price, keys: %w[pricerealmedian priceavg24h pricereal]) } # steam
         all_markets_weighted_median_price = calculate_weighted_median(all_prices)
 
-        SkinItemHistory.upsert(
+        history = SkinItemHistory.upsert(
           {
             skin_item_id: skin_item.first["id"],
             pricelatest: latest_steam_price,
@@ -65,8 +65,11 @@ module Import
             date: Time.zone.today,
             metadata: price
           },
-          unique_by: %i[skin_item_id date]
+          unique_by: %i[skin_item_id date],
+          returning: %w[id]
         )
+
+        Import::MarketPrices.call(history.first["id"], price)
       end
     end
 
