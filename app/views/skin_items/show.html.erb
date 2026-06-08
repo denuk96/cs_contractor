@@ -382,6 +382,66 @@
         }
       } %>
     </div>
+
+    <!-- 5. Cross-Market Discrepancy Table (current snapshot) -->
+    <div class="col-md-12 mb-5">
+      <h3>
+        Cross-Market Discrepancy <small class="text-muted">(vs Steam)</small>
+        <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Cross-Market Disconnect" data-bs-content="How far each third-party market's lowest offer sits from Steam in the latest snapshot. Negative (green) = cheaper than Steam; a large gap can signal a Steam-side pump."></i>
+      </h3>
+      <% if @price_discrepancy.present? && @steam_reference_price.to_f > 0 %>
+        <p class="text-muted mb-2">
+          Steam reference: <strong>$<%= number_with_precision(@steam_reference_price, precision: 2) %></strong>
+          <% if @latest_history_date %><span class="ms-1">(snapshot <%= @latest_history_date %>)</span><% end %>
+        </p>
+        <table class="table table-sm table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Market</th>
+              <th class="text-end">Price</th>
+              <th class="text-end">Qty</th>
+              <th class="text-end">Δ vs Steam</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @price_discrepancy.each do |row| %>
+              <tr>
+                <td><%= row[:source].titleize %></td>
+                <td class="text-end">$<%= number_with_precision(row[:price], precision: 2) %></td>
+                <td class="text-end"><%= row[:quantity] %></td>
+                <td class="text-end <%= row[:diff_percent].to_f >= 0 ? 'text-danger' : 'text-success' %>">
+                  <%= row[:diff_percent] ? format('%+.1f%%', row[:diff_percent]) : '—' %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="text-muted mb-0">No cross-market price data yet. Run <code>rake import:backfill_market_prices</code> or wait for the next import.</p>
+      <% end %>
+    </div>
+
+    <!-- 5. Cross-Market Prices Over Time -->
+    <div class="col-md-12 mb-5">
+      <h3>
+        Cross-Market Prices
+        <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="All Markets" data-bs-content="Lowest offer per market, day by day, including Steam. Diverging lines show where one market is leading or lagging the others."></i>
+      </h3>
+      <% if @market_price_data.present? %>
+        <%= line_chart @market_price_data, library: {
+          scales: {
+            y: {
+              type: 'linear',
+              position: 'left',
+              ticks: { callback: "function(value) { return '$' + value.toLocaleString(); }" },
+              title: { display: true, text: 'Price (USD)' }
+            }
+          }
+        } %>
+      <% else %>
+        <p class="text-muted mb-0">No cross-market price history yet.</p>
+      <% end %>
+    </div>
   </div>
 
   <div class="row mb-5">

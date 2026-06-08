@@ -81,5 +81,12 @@ class SkinItemsController < ApplicationController
       { name: 'Offer Volume', data: history.pluck(:date, :offervolume), color: '#dc3545', yAxis: 'volume-axis' }, # Red
       { name: 'Sold Volume', data: history.pluck(:date, :soldtoday), type: 'column', color: '#6c757d', yAxis: 'volume-axis' } # Grey
     ]
+
+    # 5. Cross-Market Prices (SkinItemHistoryPrice): chart series + discrepancy table.
+    cross_market = SkinItems::CrossMarketPrices.new(@skin_item, latest_history: latest_history).call
+    @market_price_data     = cross_market.series
+    @price_discrepancy     = cross_market.discrepancy
+    @steam_reference_price = cross_market.steam_reference_price
+    @latest_history_date   = cross_market.snapshot_date
   end
 end

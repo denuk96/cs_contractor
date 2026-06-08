@@ -132,6 +132,44 @@ def steam_market_name(base, wear, stattrak:, souvenir:)
   "#{prefix}#{base} (#{wear})"
 end
 
+# Third-party market quotes relative to Steam's lowest offer (pricelatest).
+# Most markets sit below Steam (trapped-wallet premium); Dmarket runs hot, so
+# the seeded cross-market table/chart show a realistic spread around Steam.
+MARKET_FACTORS = {
+  "buff"     => 0.78,
+  "csfloat"  => 0.72,
+  "skinport" => 0.75,
+  "waxpeer"  => 0.74,
+  "tradeit"  => 0.80,
+  "youpin"   => 0.82,
+  "dmarket"  => 1.12
+}.freeze
+
+# Builds a steamwebapi-shaped payload so Import::MarketPrices (the live import's
+# builder) can derive the per-market rows + the synthetic Steam row. Seeded with
+# the history id so re-running `db:seed` is deterministic.
+def seed_market_payload(history)
+  rng = Random.new(history.id)
+
+  prices = MARKET_FACTORS.map do |source, factor|
+    jitter = 1 + (rng.rand - 0.5) * 0.06 # ±3% day-to-day wobble
+    {
+      "price" => (history.pricelatest * factor * jitter).round(2),
+      "source" => source,
+      "quantity" => rng.rand(20..500),
+      "type" => "offer",
+      "created_at" => history.date.to_s
+    }
+  end
+
+  {
+    "pricelatest" => history.pricelatest,
+    "offervolume" => history.offervolume,
+    "priceupdatedat" => { "date" => history.date.to_s },
+    "prices" => prices
+  }
+end
+
 # A real PNG placeholder so the show page has an image to render offline. In
 # production `Import::Skins` fills `skins.image` from the CSGO-API instead.
 def placeholder_image(base)
@@ -231,6 +269,11 @@ ActiveRecord::Base.transaction do
 
         rows = history_series(item, wear_price)
         SkinItemHistory.upsert_all(rows, unique_by: %i[skin_item_id date])
+
+        # Cross-market prices per snapshot, built via the live import's builder.
+        SkinItemHistory.where(skin_item_id: item.id).find_each do |history|
+          Import::MarketPrices.call(history.id, seed_market_payload(history))
+        end
       end
     end
 
@@ -241,4 +284,5 @@ ActiveRecord::Base.transaction do
 end
 
 puts "Seeded #{Skin.count} skins, #{SkinItem.count} skin items, " \
-     "#{SkinItemHistory.count} price-history rows."
+     "#{SkinItemHistory.count} price-history rows, " \
+     "#{SkinItemHistoryPrice.count} cross-market price rows."
