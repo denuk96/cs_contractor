@@ -35,6 +35,7 @@ module SkinItems
     # One series per market: { name:, data: [[date, price], ...] }.
     def series
       rows = SkinItemHistoryPrice
+             .priced
              .joins(:skin_item_history)
              .where(skin_item_histories: { skin_item_id: skin_item.id })
              .order("skin_item_histories.date ASC")
@@ -45,7 +46,7 @@ module SkinItems
     end
 
     def latest_prices
-      @latest_prices ||= latest_history ? latest_history.market_prices.to_a : []
+      @latest_prices ||= latest_history ? latest_history.market_prices.priced.to_a : []
     end
 
     # Steam's quote in the latest snapshot; falls back to the history column.
