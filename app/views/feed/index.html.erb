@@ -17,6 +17,15 @@
       <% @feed_items.each do |feed_item| %>
         <%= link_to skin_item_path(feed_item.skin_item), class: "list-group-item list-group-item-action" do %>
           <div class="d-flex w-100 justify-content-between align-items-start">
+            <div class="flex-shrink-0 me-3" style="width: 64px;">
+              <% if feed_item.skin_item.image.present? %>
+                <%= image_tag feed_item.skin_item.image, alt: feed_item.skin_item.name, class: "img-fluid rounded", loading: "lazy" %>
+              <% else %>
+                <div class="d-flex align-items-center justify-content-center bg-light rounded text-muted" style="height: 48px;">
+                  <i class="bi bi-image"></i>
+                </div>
+              <% end %>
+            </div>
             <div class="flex-grow-1 me-3">
               <div class="d-flex w-100 justify-content-between">
                 <h5 class="mb-1"><%= feed_item.skin_item.name %></h5>
