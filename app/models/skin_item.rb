@@ -16,6 +16,7 @@
 #  updated_at                  :datetime         not null
 #  wear                        :integer
 #  image                       :string
+#  in_game_store               :boolean          default(FALSE), not null
 #
 # Indexes
 #
@@ -72,7 +73,7 @@ class SkinItem < ApplicationRecord
   end
 
   def update_latest_price
-    result = SteamApi.price_overview(name, timeout: 10, open_timeout: 5)
+    result = Steam::MarketApi.price_overview(name, timeout: 10, open_timeout: 5)
     unless result[:success]
       Rails.logger.warn "Failed to get price for #{name}: #{result.inspect}"
       return false

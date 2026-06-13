@@ -25,3 +25,7 @@ production:
   generate_feed:
     class: GenerateFeedJob
     schedule: every day at 5am
+
+  sync_steam_store_flags:
+    class: SyncSteamStoreFlagsJob
+    schedule: every day at 4:30am

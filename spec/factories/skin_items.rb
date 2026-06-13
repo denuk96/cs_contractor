@@ -16,6 +16,7 @@
 #  updated_at                  :datetime         not null
 #  wear                        :integer
 #  image                       :string
+#  in_game_store               :boolean          default(FALSE), not null
 #
 # Indexes
 #

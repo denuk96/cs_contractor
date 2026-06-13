@@ -12,6 +12,7 @@ class HomeController < ApplicationController
       wear: params[:wear],
       stattrak: params[:stattrak],
       souvenir: params[:souvenir],
+      in_game_store: params[:in_game_store],
       min_price: params[:min_price],
       max_price: params[:max_price],
       sort_by: params[:sort_by],

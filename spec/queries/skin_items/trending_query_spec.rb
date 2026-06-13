@@ -114,6 +114,41 @@ RSpec.describe SkinItems::TrendingQuery do
       expect(result.map(&:id)).not_to include(pistol_item.id)
     end
 
+    it "filters by in_game_store flag" do
+      skin = create(:skin)
+
+      in_store_item = create(:skin_item, skin: skin, in_game_store: true)
+      not_in_store_item = create(:skin_item, skin: skin, in_game_store: false)
+
+      [in_store_item, not_in_store_item].each do |item|
+        create(
+          :skin_item_history,
+          skin_item: item,
+          date: Date.new(2026, 1, 1),
+          soldtoday: 1,
+          buyordervolume: 1,
+          offervolume: 10,
+          pricelatest: 1.0,
+          buyorderprice: 0.9
+        )
+        create(
+          :skin_item_history,
+          skin_item: item,
+          date: Date.new(2026, 2, 1),
+          soldtoday: 2,
+          buyordervolume: 2,
+          offervolume: 9,
+          pricelatest: 1.1,
+          buyorderprice: 1.0
+        )
+      end
+
+      result = described_class.new(in_game_store: "true", limit: 50).call
+
+      expect(result.map(&:id)).to include(in_store_item.id)
+      expect(result.map(&:id)).not_to include(not_in_store_item.id)
+    end
+
     it "filters by rarity when rarity is provided as an enum key (e.g., Mid-Spec Grade)" do
       skin = create(:skin, category: "Rifle")
 

@@ -33,6 +33,10 @@
           <%= f.select :souvenir, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:souvenir] || 'false' }, { class: "form-select" } %>
         </div>
         <div class="col-md-3">
+          <%= f.label :in_game_store, "Available In-Store", class: "form-label" %>
+          <%= f.select :in_game_store, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:in_game_store] }, { class: "form-select" } %>
+        </div>
+        <div class="col-md-3">
           <%= f.label :sort_by, "Sort By", class: "form-label" %>
           <%= f.select :sort_by, [
             ["Trending Score", ""],

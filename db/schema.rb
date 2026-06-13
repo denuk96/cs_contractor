@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_13_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_13_000003) do
   create_table "feed_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "details"
@@ -68,6 +68,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_000002) do
   create_table "skin_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "image"
+    t.boolean "in_game_store", default: false, null: false
     t.datetime "last_steam_price_updated_at"
     t.float "latest_steam_order_price"
     t.float "latest_steam_price"

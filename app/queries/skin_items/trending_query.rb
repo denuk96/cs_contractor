@@ -83,6 +83,7 @@ module SkinItems
         starred_only = options[:starred_only]
         stattrak = options[:stattrak]
         souvenir = options[:souvenir]
+        in_game_store = options[:in_game_store]
         collection = options[:collection]
 
         binds = {}
@@ -98,6 +99,10 @@ module SkinItems
         if stattrak.in?(%w[true false])
           primary_conditions << "skin_items.stattrak = :stattrak"
           binds[:stattrak] = (stattrak == "true")
+        end
+        if in_game_store.in?(%w[true false])
+          primary_conditions << "skin_items.in_game_store = :in_game_store"
+          binds[:in_game_store] = (in_game_store == "true")
         end
         # Souvenir is decided by the real presence of a priced souvenir listing,
         # not just the boolean flag: "Yes" requires an actual price, so items
