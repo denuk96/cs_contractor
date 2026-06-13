@@ -281,8 +281,28 @@ ActiveRecord::Base.transaction do
     # souvenir only when it actually has a priced souvenir listing.
     skin.update!(souvenir: SkinItem.where(skin_id: skin.id, souvenir: true).have_prices.exists?)
   end
+
+  # ---------------------------------------------------------------------
+  # Feed demo data
+  #
+  # The default uptrend already pushes today's turnover past the "Supply Dry
+  # Up" threshold for most items. Nudge today's snapshot for two items so the
+  # other two signals have an example to show as well, then run the same
+  # generator the recurring job uses.
+  # ---------------------------------------------------------------------
+  SkinItem.find_by!(name: "AK-47 | Redline (Field-Tested)")
+          .skin_item_histories.find_by!(date: Date.current)
+          .update!(offervolume: 5, buyordervolume: 300) # Pump Alert: huge buy wall, shrinking supply.
+
+  SkinItem.find_by!(name: "AWP | Asiimov (Field-Tested)")
+          .skin_item_histories.find_by!(date: Date.current)
+          .update!(offervolume: 800) # Buy Order Increase: demand up, turnover/buy-wall stay low.
+
+  Feed::GenerateEntries.new.call
+  Feed::PruneStaleEntries.new.call
 end
 
 puts "Seeded #{Skin.count} skins, #{SkinItem.count} skin items, " \
      "#{SkinItemHistory.count} price-history rows, " \
-     "#{SkinItemHistoryPrice.count} cross-market price rows."
+     "#{SkinItemHistoryPrice.count} cross-market price rows, " \
+     "#{FeedItem.count} feed items."

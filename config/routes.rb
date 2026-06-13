@@ -8,6 +8,8 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root "home#index"
 
+  get "feed", to: "feed#index", as: :feed
+
   resources :skin_items, only: [:show] do
     resource :star, only: [:create, :destroy], controller: "stars"
   end

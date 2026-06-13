@@ -1,0 +1,59 @@
+<div class="container mt-4">
+  <h1 class="mb-4">Feed</h1>
+
+  <div class="mb-3">
+    <%= link_to "All", feed_path, class: "btn btn-sm me-1 #{params[:signal_type].present? ? 'btn-outline-primary' : 'btn-primary'}" %>
+    <% FeedItem.signal_types.each_key do |signal_type| %>
+      <%= link_to FeedItem::SIGNAL_LABELS.fetch(signal_type, signal_type.titleize), feed_path(signal_type: signal_type), class: "btn btn-sm me-1 #{params[:signal_type] == signal_type ? 'btn-primary' : 'btn-outline-primary'}" %>
+    <% end %>
+  </div>
+
+  <% if @feed_items.any? %>
+    <div class="d-flex justify-content-center">
+      <%= paginate @feed_items %>
+    </div>
+
+    <div class="list-group mb-4">
+      <% @feed_items.each do |feed_item| %>
+        <%= link_to skin_item_path(feed_item.skin_item), class: "list-group-item list-group-item-action" do %>
+          <div class="d-flex w-100 justify-content-between align-items-start">
+            <div class="flex-grow-1 me-3">
+              <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1"><%= feed_item.skin_item.name %></h5>
+                <small class="text-muted"><%= feed_item.occurred_on %></small>
+              </div>
+              <span class="badge <%= feed_signal_badge_class(feed_item.signal_type) %> mb-2"><%= feed_item.signal_label %></span>
+              <p class="mb-1"><%= feed_item.headline %></p>
+              <% if feed_item.details.present? %>
+                <small class="text-muted">
+                  <% feed_item.details.each do |key, value| %>
+                    <span class="badge bg-light text-dark border me-1"><%= key.to_s.humanize %>: <%= value %></span>
+                  <% end %>
+                </small>
+              <% end %>
+            </div>
+            <% series = @chart_series[feed_item.id] %>
+            <% if series.present? && series.first[:data].present? %>
+              <div style="width: 160px;">
+                <%= line_chart series, height: "60px", library: {
+                  plugins: { legend: { display: false } },
+                  scales: { x: { display: false }, y: { display: false } },
+                  elements: { point: { radius: 0 } }
+                } %>
+                <small class="text-muted d-block text-center"><%= series.first[:name] %> (14d)</small>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="d-flex justify-content-center">
+      <%= paginate @feed_items %>
+    </div>
+  <% else %>
+    <div class="alert alert-info">
+      No feed items yet. Check back after the next data refresh.
+    </div>
+  <% end %>
+</div>

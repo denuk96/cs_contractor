@@ -21,3 +21,7 @@ production:
   import_prices:
     class: ImportPricesJob
     schedule: every 3 hours
+
+  generate_feed:
+    class: GenerateFeedJob
+    schedule: every day at 5am
