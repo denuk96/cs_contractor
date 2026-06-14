@@ -42,7 +42,7 @@ export default class extends Controller {
     }
 
     this.resultsTarget.innerHTML = names
-      .map((name) => `<button type="button" class="list-group-item list-group-item-action py-1 text-truncate" data-action="click->autocomplete#select">${this.escapeHtml(name)}</button>`)
+      .map((name) => `<button type="button" class="list-group-item list-group-item-action py-2 text-truncate" data-action="click->autocomplete#select">${this.escapeHtml(name)}</button>`)
       .join("")
     this.resultsTarget.classList.remove("d-none")
   }
