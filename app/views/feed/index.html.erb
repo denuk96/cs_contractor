@@ -16,12 +16,12 @@
     <div class="list-group mb-4">
       <% @feed_items.each do |feed_item| %>
         <%= link_to skin_item_path(feed_item.skin_item), class: "list-group-item list-group-item-action" do %>
-          <div class="d-flex w-100 justify-content-between align-items-start">
-            <div class="flex-shrink-0 me-3" style="width: 64px;">
+          <div class="d-flex w-100 justify-content-between align-items-stretch">
+            <div class="flex-shrink-0 me-3" style="aspect-ratio: 1 / 1; max-width: 100px; max-height: 100px;">
               <% if feed_item.skin_item.image.present? %>
-                <%= image_tag feed_item.skin_item.image, alt: feed_item.skin_item.name, class: "img-fluid rounded", loading: "lazy" %>
+                <%= image_tag feed_item.skin_item.image, alt: feed_item.skin_item.name, class: "rounded w-100 h-100", style: "object-fit: cover;", loading: "lazy" %>
               <% else %>
-                <div class="d-flex align-items-center justify-content-center bg-light rounded text-muted" style="height: 48px;">
+                <div class="d-flex align-items-center justify-content-center bg-light rounded text-muted h-100 w-100">
                   <i class="bi bi-image"></i>
                 </div>
               <% end %>
@@ -43,8 +43,8 @@
             </div>
             <% series = @chart_series[feed_item.id] %>
             <% if series.present? && series.first[:data].present? %>
-              <div style="width: 160px;">
-                <%= line_chart series, height: "60px", library: {
+              <div class="flex-shrink-0" style="width: 30%;">
+                <%= line_chart series, height: "60px", colors: ["#f0ad4e"], library: {
                   plugins: { legend: { display: false } },
                   scales: { x: { display: false }, y: { display: false } },
                   elements: { point: { radius: 0 } }
