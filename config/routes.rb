@@ -12,6 +12,10 @@ Rails.application.routes.draw do
 
   resources :skin_items, only: [:show] do
     resource :star, only: [:create, :destroy], controller: "stars"
+
+    collection do
+      get :autocomplete
+    end
   end
 
 

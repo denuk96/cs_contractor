@@ -1,4 +1,23 @@
 class SkinItemsController < ApplicationController
+  AUTOCOMPLETE_LIMIT = 10
+
+  def autocomplete
+    query = params[:q].to_s.strip
+
+    names =
+      if query.present?
+        escaped_query = SkinItem.sanitize_sql_like(query)
+        SkinItem.where("name LIKE ? ESCAPE '\\'", "%#{escaped_query}%")
+          .order(:name)
+          .limit(AUTOCOMPLETE_LIMIT)
+          .pluck(:name)
+      else
+        []
+      end
+
+    render json: names
+  end
+
   def show
     # Join with skins to get the fallback rarity and crates
     @skin_item = SkinItem.joins(:skin)
