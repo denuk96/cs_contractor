@@ -27,6 +27,28 @@ RSpec.describe Steam::Client do
     end
   end
 
+  describe "#asset_class_info" do
+    it "returns the class info result keyed by classid" do
+      stub_request(:get, "https://api.steampowered.com/ISteamEconomy/GetAssetClassInfo/v1/")
+        .with(query: { key: "test-key", appid: "730", language: "english", class_count: "2", classid0: "100", classid1: "200" })
+        .to_return(
+          status: 200,
+          body: {
+            result: {
+              "100" => { name: "AK-47 | Redline", market_hash_name: "AK-47 | Redline (Field-Tested)" },
+              "200" => { name: "M4A4 | Asiimov", market_hash_name: "M4A4 | Asiimov (Field-Tested)" },
+              success: true
+            }
+          }.to_json
+        )
+
+      result = client.asset_class_info(%w[100 200])
+
+      expect(result["100"]).to eq({ "name" => "AK-47 | Redline", "market_hash_name" => "AK-47 | Redline (Field-Tested)" })
+      expect(result["200"]).to eq({ "name" => "M4A4 | Asiimov", "market_hash_name" => "M4A4 | Asiimov (Field-Tested)" })
+    end
+  end
+
   describe "error handling" do
     it "raises when the response is not successful" do
       client_without_retries = described_class.new(api_key: "test-key", retries: 0)

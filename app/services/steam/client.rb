@@ -20,6 +20,15 @@ module Steam
       get("/ISteamEconomy/GetAssetPrices/v1/", **params)
     end
 
+    # Item names, market hash names, and icons for up to 100 asset class ids
+    # (as returned in `asset_prices`), keyed by classid.
+    def asset_class_info(class_ids, appid: 730, language: "english")
+      params = { appid:, language:, class_count: class_ids.size }
+      class_ids.each_with_index { |classid, index| params[:"classid#{index}"] = classid }
+
+      get("/ISteamEconomy/GetAssetClassInfo/v1/", **params)
+    end
+
     private
 
     def get(path, **params)
