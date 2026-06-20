@@ -9,28 +9,35 @@ module ApplicationHelper
   def float_range_with_wear_chance(item)
     return "-" if item.float_min.nil? || item.float_max.nil?
 
-    min_s = number_with_precision(item.float_min, precision: 2, strip_insignificant_zeros: true)
-    max_s = number_with_precision(item.float_max, precision: 2, strip_insignificant_zeros: true)
+    min_s = number_with_precision(item.float_min, precision: 4, strip_insignificant_zeros: true)
+    max_s = number_with_precision(item.float_max, precision: 4, strip_insignificant_zeros: true)
+    content_tag(:span, "#{min_s}-#{max_s}", class: "text-nowrap")
+  end
 
-    float_range_s = "#{min_s}-#{max_s}"
+  def adjusted_float_range(item)
+    return "-" if item.float_min.nil? || item.float_max.nil?
 
-    if item.can_have_factory_new?
-      prob = item.fn_probability_percent
-      return content_tag(:span, float_range_s, class: "text-nowrap") if prob.nil?
+    float_cap = item.float_max.to_f - item.float_min.to_f
+    return "-" if float_cap <= 0
 
-      prob_s = number_to_percentage(prob, precision: 1, strip_insignificant_zeros: true)
-      return content_tag(:span, float_range_s, class: "text-nowrap") if prob_s.blank?
+    wear_name = item.wear
+    wear_range = Skin::WEAR_RANGES[wear_name] if wear_name.present?
 
-      fn_class = prob.to_f > 5 ? "text-success" : "text-danger"
-      fn_part = safe_join(["(", content_tag(:span, "#{prob_s} FN", class: fn_class), ")"])
+    if wear_range
+      actual_min = [item.float_min.to_f, wear_range.begin].max
+      actual_max = [item.float_max.to_f, wear_range.end].min
+      return "-" unless actual_min < actual_max
 
-      return content_tag(:span, safe_join([float_range_s, fn_part]), class: "text-nowrap")
+      adj_min = ((actual_min - item.float_min.to_f) / float_cap).round(4)
+      adj_max = ((actual_max - item.float_min.to_f) / float_cap).round(4)
+    else
+      adj_min = 0.0
+      adj_max = 1.0
     end
 
-    wear_abbr = wear_abbreviation(item.best_possible_wear)
-    return content_tag(:span, float_range_s, class: "text-nowrap") if wear_abbr.blank?
-
-    content_tag(:span, "#{float_range_s}(#{wear_abbr})", class: "text-nowrap")
+    adj_min_s = number_with_precision(adj_min, precision: 4, strip_insignificant_zeros: true)
+    adj_max_s = number_with_precision(adj_max, precision: 4, strip_insignificant_zeros: true)
+    content_tag(:span, "#{adj_min_s}-#{adj_max_s}", class: "text-nowrap")
   end
 
   def wear_abbreviation(wear)

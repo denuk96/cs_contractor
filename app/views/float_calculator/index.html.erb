@@ -1,0 +1,36 @@
+<div class="container mt-4" data-controller="float-calculator">
+  <h1 class="mb-4">Adjusted Float Calculator</h1>
+  <p class="text-muted">Formula: <code>(item_float − min_float) / (max_float − min_float)</code></p>
+
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <div class="card">
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Min Float</label>
+            <input type="number" class="form-control" step="0.0001" min="0" max="1" placeholder="e.g. 0.25"
+                   data-float-calculator-target="minFloat" data-action="input->float-calculator#calculate">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Max Float</label>
+            <input type="number" class="form-control" step="0.0001" min="0" max="1" placeholder="e.g. 0.75"
+                   data-float-calculator-target="maxFloat" data-action="input->float-calculator#calculate">
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Item Float</label>
+            <input type="number" class="form-control" step="0.0001" min="0" max="1" placeholder="e.g. 0.26"
+                   data-float-calculator-target="currentFloat" data-action="input->float-calculator#calculate">
+          </div>
+
+          <div class="d-none card bg-light" data-float-calculator-target="result">
+            <div class="card-body text-center py-4">
+              <div class="text-muted small mb-1">Adjusted Float</div>
+              <div class="display-4 fw-bold text-primary" data-float-calculator-target="adjValue"></div>
+              <div class="text-muted mt-2" data-float-calculator-target="interpretation"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

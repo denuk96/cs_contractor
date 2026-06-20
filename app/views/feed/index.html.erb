@@ -31,6 +31,10 @@
                 <h5 class="mb-1"><%= feed_item.skin_item.name %></h5>
                 <small class="text-muted"><%= feed_item.occurred_on %></small>
               </div>
+              <% collection_name = feed_item.skin_item.skin&.collection_name %>
+              <% if collection_name.present? %>
+                <small class="text-muted d-block mb-1"><%= collection_name %></small>
+              <% end %>
               <span class="badge <%= feed_signal_badge_class(feed_item.signal_type) %> mb-2"><%= feed_item.signal_label %></span>
               <p class="mb-1"><%= feed_item.headline %></p>
               <% if feed_item.details.present? %>

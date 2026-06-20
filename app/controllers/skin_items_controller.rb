@@ -40,14 +40,14 @@ class SkinItemsController < ApplicationController
     # Turnover Rate History
     @turnover_history = history.map do |h|
       turnover = h.offervolume.to_i > 0 ? (h.soldtoday.to_f / h.offervolume.to_f) * 100 : 0
-      [h.date, turnover]
+      [h.date, turnover.round(2)]
     end
     @current_turnover = @turnover_history.last&.second.to_f
 
     # Buy Wall Ratio History
     @buy_wall_history = history.map do |h|
       ratio = h.offervolume.to_i > 0 ? (h.buyordervolume.to_f / h.offervolume.to_f) : 0
-      [h.date, ratio]
+      [h.date, ratio.round(2)]
     end
     
     # Current Buy Wall Ratio
@@ -78,7 +78,7 @@ class SkinItemsController < ApplicationController
     @accumulation_data = [
       { name: 'Offer Volume (Supply)', data: history.pluck(:date, :offervolume), yAxis: 'volume-axis' },
       { name: 'Buy Orders (Demand)', data: history.pluck(:date, :buyordervolume), yAxis: 'volume-axis' },
-      { name: 'Price', data: history.pluck(:date, :pricelatest), yAxis: 'price-axis' }
+      { name: 'Price', data: history.map { |h| [h.date, h.pricelatest&.round(2)] }, yAxis: 'price-axis' }
     ]
 
     # 2. Elasticity Dashboard Data
@@ -90,8 +90,8 @@ class SkinItemsController < ApplicationController
     # 3. Fakeout Dashboard Data
     @fakeout_data = [
       { name: 'Sold Volume', data: history.pluck(:date, :soldtoday), yAxis: 'volume-axis' },
-      { name: 'Price', data: history.pluck(:date, :pricelatest), yAxis: 'price-axis' },
-      { name: 'All Markets Weighted Median Price', data: history.pluck(:date, :all_markets_weighted_median_price), yAxis: 'price-axis', dataset: { hidden: true } }
+      { name: 'Price', data: history.map { |h| [h.date, h.pricelatest&.round(2)] }, yAxis: 'price-axis' },
+      { name: 'All Markets Weighted Median Price', data: history.map { |h| [h.date, h.all_markets_weighted_median_price&.round(2)] }, yAxis: 'price-axis', dataset: { hidden: true } }
     ]
 
     # 4. Squeeze Chart (God Mode) Data

@@ -159,6 +159,11 @@
                   <%= float_range_with_wear_chance(@skin_item) %>
                 </dd>
 
+                <dt class="col-sm-4">Adjusted Float</dt>
+                <dd class="col-sm-8">
+                  <%= adjusted_float_range(@skin_item) %>
+                </dd>
+
                 <dt class="col-sm-4">Current Price</dt>
                 <dd class="col-sm-8 fw-bold"><%= number_to_currency(@skin_item.latest_steam_price) %></dd>
               </dl>

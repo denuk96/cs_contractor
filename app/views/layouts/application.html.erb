@@ -48,9 +48,43 @@
               <%= link_to "Jobs", "/jobs", class: "nav-link #{'active' if request.path.start_with?('/jobs')}" %>
             </li>
           </ul>
+          <button class="btn btn-outline-light btn-sm ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#floatCalculatorPanel">
+            <i class="bi bi-calculator"></i> Float Calc
+          </button>
         </div>
       </div>
     </nav>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="floatCalculatorPanel" data-controller="float-calculator">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Adjusted Float Calculator</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body">
+        <p class="text-muted small">Formula: <code>(current − min) / (max − min)</code></p>
+        <div class="mb-3">
+          <label class="form-label">Min Float</label>
+          <input type="number" class="form-control" step="0.0001" min="0" max="1" placeholder="e.g. 0.25"
+                 data-float-calculator-target="minFloat" data-action="input->float-calculator#calculate">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Max Float</label>
+          <input type="number" class="form-control" step="0.0001" min="0" max="1" placeholder="e.g. 0.75"
+                 data-float-calculator-target="maxFloat" data-action="input->float-calculator#calculate">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Item Float</label>
+          <input type="number" class="form-control" step="0.0001" min="0" max="1" placeholder="e.g. 0.26"
+                 data-float-calculator-target="currentFloat" data-action="input->float-calculator#calculate">
+        </div>
+        <div class="d-none card" data-float-calculator-target="result">
+          <div class="card-body text-center">
+            <div class="display-6 fw-bold text-primary" data-float-calculator-target="adjValue"></div>
+            <div class="text-muted small mt-1" data-float-calculator-target="interpretation"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <%= yield %>
   </body>

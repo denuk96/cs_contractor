@@ -1,6 +1,5 @@
 class HomeController < ApplicationController
   def index
-    # Default Souvenir filter to 'false' (No) if not specified
     params[:souvenir] ||= 'false'
 
     # For CSV/JSON export, we want a larger limit or all items.
