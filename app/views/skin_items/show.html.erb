@@ -5,6 +5,14 @@
     <%= link_to "https://steamcommunity.com/market/listings/730/#{ERB::Util.url_encode(@skin_item.name)}", target: "_blank", class: "btn btn-outline-primary btn-sm ms-2" do %>
       <i class="bi bi-steam"></i> View on Steam
     <% end %>
+    <%
+      csfloat_params = { category: 0, type: "buy_now", query: @skin_item.name }
+      csfloat_params[:min_float] = @skin_item.skin.min_float if @skin_item.skin&.min_float.present?
+      csfloat_params[:max_float] = @skin_item.skin.max_float if @skin_item.skin&.max_float.present?
+    %>
+    <%= link_to "https://csfloat.com/search?#{csfloat_params.to_query}", target: "_blank", class: "btn btn-outline-secondary btn-sm ms-1" do %>
+      CSFloat
+    <% end %>
   </h1>
 
   <!-- Analysis Section (Top) -->

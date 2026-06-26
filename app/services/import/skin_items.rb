@@ -54,7 +54,7 @@ module Import
             sold30d: price["sold30d"],
             sold90d: price["sold90d"],
             soldtotal: price["soldtotal"],
-            soldtoday: price["soldtoday"],
+            soldtoday: price["sold24h"] || price["soldtoday"],
             buyordervolume: price["buyordervolume"],
             buyorderprice: price["buyorderprice"],
             buyordermedian: price["buyordermedian"],
