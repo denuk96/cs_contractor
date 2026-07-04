@@ -16,7 +16,7 @@ production:
 
   import_skins:
     class: ImportSkinsJob
-    schedule: every day at 4am
+    schedule: every 3 hours
 
   import_prices:
     class: ImportPricesJob
@@ -24,8 +24,8 @@ production:
 
   generate_feed:
     class: GenerateFeedJob
-    schedule: every day at 5am
+    schedule: every 1 hour
 
   sync_steam_store_flags:
     class: SyncSteamStoreFlagsJob
-    schedule: every day at 4:30am
+    schedule: every 6 hours

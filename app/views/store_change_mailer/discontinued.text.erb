@@ -1,0 +1,17 @@
+CS2 store update
+================
+
+<%= @skin_items.size %> item(s) just left the in-game store -- pulled directly, or the
+case/capsule it unboxes from was discontinued. Supply stops growing from here.
+
+<% @skin_items.each do |item| -%>
+<% crates = Array(item.skin&.crates) -%>
+* <%= item.name %>
+  Source:      <%= crates.any? ? crates.join(", ") : "Direct store item" %>
+  Rarity:      <%= item.rarity %>
+  Steam price: <%= item.latest_steam_price ? "$#{format('%.2f', item.latest_steam_price)}" : "n/a" %>
+  Market:      https://steamcommunity.com/market/listings/730/<%= ERB::Util.url_encode(item.name) %>
+
+<% end -%>
+--
+Sent by cs_contractor · SyncSteamStoreFlagsJob

@@ -6,7 +6,7 @@
       <i class="bi bi-steam"></i> View on Steam
     <% end %>
     <%
-      csfloat_params = { category: 0, type: "buy_now", query: @skin_item.name }
+      csfloat_params = { category: 0, type: "buy_now", market_hash_name: @skin_item.name }
       csfloat_params[:min_float] = @skin_item.skin.min_float if @skin_item.skin&.min_float.present?
       csfloat_params[:max_float] = @skin_item.skin.max_float if @skin_item.skin&.max_float.present?
     %>
