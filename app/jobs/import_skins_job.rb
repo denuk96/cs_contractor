@@ -1,4 +1,6 @@
 class ImportSkinsJob < ApplicationJob
+  include NotifiesOnFailure
+
   queue_as :default
 
   def perform

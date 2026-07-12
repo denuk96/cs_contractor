@@ -1,0 +1,19 @@
+Background job failed
+=====================
+
+A recurring job raised an unhandled error and was recorded as failed in Solid
+Queue. It will run again on its next schedule.
+
+Job:     <%= @job_name %>
+Error:   <%= @error.class %>
+Message: <%= @error.message %>
+Time:    <%= @occurred_at.utc.strftime("%Y-%m-%d %H:%M:%S UTC") %>
+
+<% if @backtrace.any? -%>
+Backtrace (top <%= @backtrace.size %>):
+<% @backtrace.each do |line| -%>
+  <%= line %>
+<% end -%>
+<% end -%>
+--
+Sent by cs_contractor · <%= @job_name %>

@@ -1,4 +1,6 @@
 class SyncSteamStoreFlagsJob < ApplicationJob
+  include NotifiesOnFailure
+
   queue_as :default
 
   def perform
@@ -33,8 +35,5 @@ class SyncSteamStoreFlagsJob < ApplicationJob
     Rails.logger.error("[SyncSteamStoreFlags] failed to send discontinued-items email: #{e.class}: #{e.message}")
   end
 
-  def smtp_configured?
-    ActionMailer::Base.delivery_method == :smtp &&
-      ActionMailer::Base.smtp_settings[:password].present?
-  end
+  # smtp_configured? is provided by NotifiesOnFailure.
 end
