@@ -8,8 +8,10 @@ module Import
     ].freeze
 
     def fetch_webapi_data
-      json = SteamWebApi.new.fetch_data(game: "cs2")
-      json.each do |price|
+      # Stream the (very large) payload one item at a time so peak memory is a
+      # single record rather than the whole array — the array form was getting
+      # this job OOM-killed (SIGKILL). See SteamWebApi#each_item.
+      SteamWebApi.new.each_item(game: "cs2") do |price|
         next if invalid_name?(price["markethashname"])
 
         skin = find_skin(price["markethashname"])
@@ -71,6 +73,8 @@ module Import
 
         Import::MarketPrices.call(history.first["id"], price)
       end
+
+      GC.start(full_mark: true)
     end
 
     def fetch_skinport_data
