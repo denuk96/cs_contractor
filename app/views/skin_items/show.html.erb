@@ -128,32 +128,18 @@
                       collection_name = crates.first
                     end
                   %>
-                  <%= collection_name || '-' %>
+                  <% if collection_name.present? %>
+                    <%= link_to collection_name, root_path(collection: [collection_name]) %>
+                  <% else %>
+                    -
+                  <% end %>
                 </dd>
 
                 <dt class="col-sm-4">Rarity</dt>
                 <dd class="col-sm-8">
-                  <%
-                    rarity = @skin_item.skin_rarity || @skin_item.rarity
-                    if rarity.present?
-                      rarity_color = case rarity
-                        when "Consumer Grade", "Base Grade", "Default" then "bg-secondary"
-                        when "Industrial Grade" then "bg-info text-dark"
-                        when "Mil-Spec Grade", "High Grade" then "bg-primary"
-                        when "Restricted", "Remarkable", "Exotic" then "bg-purple"
-                        when "Classified", "Exceptional" then "bg-pink"
-                        when "Covert", "Master" then "bg-danger"
-                        when "Extraordinary", "Contraband" then "bg-warning text-dark"
-                        else "bg-secondary"
-                      end
-
-                      style = case rarity
-                        when "Restricted", "Remarkable", "Exotic" then "background-color: #8847ff !important; color: white;"
-                        when "Classified", "Exceptional" then "background-color: #d32ce6 !important; color: white;"
-                        else ""
-                      end
-                  %>
-                    <span class="badge <%= rarity_color %>" style="<%= style %>"><%= rarity %></span>
+                  <% rarity = @skin_item.skin_rarity || @skin_item.rarity %>
+                  <% if rarity.present? %>
+                    <span class="badge" style="background-color: <%= rarity_color(rarity) %>; color: white;"><%= rarity %></span>
                   <% else %>
                     -
                   <% end %>
@@ -165,11 +151,6 @@
                 <dt class="col-sm-4">Float Range</dt>
                 <dd class="col-sm-8">
                   <%= float_range_with_wear_chance(@skin_item) %>
-                </dd>
-
-                <dt class="col-sm-4">Adjusted Float</dt>
-                <dd class="col-sm-8">
-                  <%= adjusted_float_range(@skin_item) %>
                 </dd>
 
                 <dt class="col-sm-4">Current Price</dt>

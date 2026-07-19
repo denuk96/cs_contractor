@@ -1,4 +1,32 @@
 module ApplicationHelper
+  # CS2 rarity colors, darkened from the in-game palette so they stay legible
+  # as text on the light table background (and as badge backgrounds).
+  RARITY_COLORS = {
+    "Consumer Grade" => "#6e7c91",
+    "Base Grade" => "#6e7c91",
+    "Default" => "#6e7c91",
+    "Industrial Grade" => "#3a7cc4",
+    "High Grade" => "#3a7cc4",
+    # `skin_items.rarity` stores "Mid-Spec Grade"; `skins.rarity` uses "Mil-Spec Grade".
+    "Mid-Spec Grade" => "#3d4fd6",
+    "Mil-Spec Grade" => "#3d4fd6",
+    "Restricted" => "#8847ff",
+    "Remarkable" => "#8847ff",
+    "Exotic" => "#8847ff",
+    "Classified" => "#b81fc9",
+    "Exceptional" => "#b81fc9",
+    "Covert" => "#d02b2b",
+    "Master" => "#d02b2b",
+    "Extraordinary" => "#a37b12",
+    "Contraband" => "#a37b12"
+  }.freeze
+
+  DEFAULT_RARITY_COLOR = "#6e7c91".freeze
+
+  def rarity_color(rarity)
+    RARITY_COLORS.fetch(rarity.to_s, DEFAULT_RARITY_COLOR)
+  end
+
   def rarity_filter_options
     @rarity_filter_options ||= begin
       sticker_rarities = Skin.where(category: "stickers").distinct.pluck(:rarity).compact.sort

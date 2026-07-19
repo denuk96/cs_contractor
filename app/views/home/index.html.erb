@@ -161,7 +161,7 @@
                 <%= link_to skin_item_path(item), class: "me-2", target: "_blank" do %>
                   <i class="bi bi-graph-up"></i>
                 <% end %>
-                <%= link_to item.name, "https://steamcommunity.com/market/listings/730/#{ERB::Util.url_encode(item.name)}", target: "_blank", class: "text-decoration-none fw-bold" %>
+                <%= link_to item.name, "https://steamcommunity.com/market/listings/730/#{ERB::Util.url_encode(item.name)}", target: "_blank", class: "text-decoration-none fw-bold", style: "color: #{rarity_color(item.skin_rarity || item.rarity)};" %>
                 <% if item.prev_date.present? %>
                   <br>
                   <small class="text-muted">
@@ -189,27 +189,9 @@
                 <% end %>
               </td>
               <td>
-                <%
-                  rarity = item.skin_rarity || item.rarity
-                  if rarity.present?
-                    rarity_color = case rarity
-                      when "Consumer Grade", "Base Grade", "Default" then "bg-secondary"
-                      when "Industrial Grade" then "bg-info text-dark"
-                      when "Mil-Spec Grade", "High Grade" then "bg-primary"
-                      when "Restricted", "Remarkable", "Exotic" then "bg-purple"
-                      when "Classified", "Exceptional" then "bg-pink"
-                      when "Covert", "Master" then "bg-danger"
-                      when "Extraordinary", "Contraband" then "bg-warning text-dark"
-                      else "bg-secondary"
-                    end
-
-                    style = case rarity
-                      when "Restricted", "Remarkable", "Exotic" then "background-color: #8847ff !important; color: white;"
-                      when "Classified", "Exceptional" then "background-color: #d32ce6 !important; color: white;"
-                      else ""
-                    end
-                %>
-                  <span class="badge <%= rarity_color %>" style="<%= style %>"><%= rarity %></span>
+                <% rarity = item.skin_rarity || item.rarity %>
+                <% if rarity.present? %>
+                  <span class="badge" style="background-color: <%= rarity_color(rarity) %>; color: white;"><%= rarity %></span>
                 <% else %>
                   <span class="text-muted">-</span>
                 <% end %>
