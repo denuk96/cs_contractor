@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Rebuild the image and restart the container in one step.
+#
+# The SQLite databases live in the named volume `extra_storage`, which is never
+# created, removed or touched here beyond being re-mounted: the container is
+# removed WITHOUT `-v`, so Docker leaves named volumes alone.
+set -euo pipefail
+
+IMAGE=${IMAGE:-cs_contractor}
+CONTAINER=${CONTAINER:-contractor}
+VOLUME=${VOLUME:-extra_storage}
+PORT=${PORT:-3000}
+
+cd "$(dirname "$0")/.."
+
+[ -f .env ] || { echo "Missing .env in $(pwd)"; exit 1; }
+
+# Build first: if it fails, the currently running container keeps serving.
+echo "==> Building $IMAGE"
+docker build -t "$IMAGE" .
+
+echo "==> Replacing container $CONTAINER"
+docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+
+docker run -d \
+  -p "$PORT:80" \
+  -v "$VOLUME:/rails/storage" \
+  --env-file .env \
+  --name "$CONTAINER" \
+  "$IMAGE"
+
+echo "==> Up on http://localhost:$PORT (data volume: $VOLUME)"
+docker ps --filter "name=^/$CONTAINER$" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"

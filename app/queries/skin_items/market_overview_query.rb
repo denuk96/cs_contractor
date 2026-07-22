@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 module SkinItems
-  # Market-wide, day-by-day aggregate of `skin_item_histories`.
+  # Market-wide, day-by-day totals for the overview page.
   #
-  # The show page slices one item's history; this rolls every tracked item into
-  # a single snapshot per day (supply, demand, sold volume, money moved) so the
-  # overview page can chart where the market as a whole is heading.
+  # Reads the pre-aggregated `market_daily_stats` rollup (written by
+  # `Market::RecalculateDailyStats`) rather than scanning `skin_item_histories`,
+  # which got too slow to do per request. Each day is stored as up to eight
+  # segment rows keyed by the skin_item flags, so a filtered view is just a sum
+  # over the matching segments.
   #
   # Without an explicit range it returns the full recorded history.
   #
@@ -50,14 +52,15 @@ module SkinItems
     end
 
     AGGREGATES = <<~SQL.squish
-      skin_item_histories.date,
-      COUNT(*),
-      SUM(COALESCE(skin_item_histories.soldtoday, 0)),
-      SUM(COALESCE(skin_item_histories.offervolume, 0)),
-      SUM(COALESCE(skin_item_histories.buyordervolume, 0)),
-      SUM(COALESCE(skin_item_histories.soldtoday, 0) * COALESCE(skin_item_histories.pricelatest, 0)),
-      SUM(COALESCE(skin_item_histories.offervolume, 0) * COALESCE(skin_item_histories.pricelatest, 0)),
-      AVG(skin_item_histories.pricelatest)
+      market_daily_stats.date,
+      SUM(items_tracked),
+      SUM(sold_volume),
+      SUM(offer_volume),
+      SUM(buy_order_volume),
+      SUM(traded_value),
+      SUM(listed_value),
+      SUM(price_sum),
+      SUM(priced_items)
     SQL
 
     # `stattrak`, `souvenir` and `in_game_store` accept "true"/"false" (blank = any).
@@ -81,7 +84,7 @@ module SkinItems
       return [] if resolved_end_date.blank?
 
       scope
-        .where(date: resolved_start_date..resolved_end_date)
+        .between(resolved_start_date, resolved_end_date)
         .group(:date)
         .order(:date)
         .pluck(Arel.sql(AGGREGATES))
@@ -89,7 +92,7 @@ module SkinItems
     end
 
     def build_day(row)
-      date, items_tracked, sold, offers, buy_orders, traded_value, listed_value, avg_price = row
+      date, items_tracked, sold, offers, buy_orders, traded_value, listed_value, price_sum, priced_items = row
 
       Day.new(
         date: to_date(date),
@@ -99,7 +102,9 @@ module SkinItems
         buy_order_volume: buy_orders.to_i,
         traded_value: traded_value.to_f,
         listed_value: listed_value.to_f,
-        avg_price: avg_price.to_f
+        # Average price is rebuilt from its components so it stays a true
+        # per-item average across the summed segments.
+        avg_price: priced_items.to_i.positive? ? price_sum.to_f / priced_items : 0.0
       )
     end
 
@@ -108,12 +113,12 @@ module SkinItems
         filters = { stattrak: boolean(stattrak), souvenir: boolean(souvenir), in_game_store: boolean(in_game_store) }
                   .compact
 
-        filters.empty? ? SkinItemHistory.all : SkinItemHistory.joins(:skin_item).where(skin_items: filters)
+        filters.empty? ? MarketDailyStat.all : MarketDailyStat.where(filters)
       end
     end
 
-    # The market's last snapshot, used as the default window anchor: history is
-    # imported in batches, so "today" is often ahead of the freshest data.
+    # The market's last rolled-up day, used as the default window anchor:
+    # history is imported in batches, so "today" is often ahead of the data.
     def latest_date
       return @latest_date if defined?(@latest_date)
 

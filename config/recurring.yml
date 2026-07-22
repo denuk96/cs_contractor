@@ -29,3 +29,7 @@ production:
   sync_steam_store_flags:
     class: SyncSteamStoreFlagsJob
     schedule: every 6 hours
+
+  recalculate_market_stats:
+    class: RecalculateMarketStatsJob
+    schedule: at 3am every day

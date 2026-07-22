@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_13_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_22_000002) do
   create_table "feed_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "details"
@@ -21,6 +21,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_000003) do
     t.datetime "updated_at", null: false
     t.index ["occurred_on", "signal_type"], name: "index_feed_items_on_occurred_on_and_signal_type"
     t.index ["skin_item_id"], name: "index_feed_items_on_skin_item_id", unique: true
+  end
+
+  create_table "market_daily_stats", force: :cascade do |t|
+    t.integer "buy_order_volume", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.boolean "in_game_store", default: false, null: false
+    t.integer "items_tracked", default: 0, null: false
+    t.float "listed_value", default: 0.0, null: false
+    t.integer "offer_volume", default: 0, null: false
+    t.float "price_sum", default: 0.0, null: false
+    t.integer "priced_items", default: 0, null: false
+    t.integer "sold_volume", default: 0, null: false
+    t.boolean "souvenir", default: false, null: false
+    t.boolean "stattrak", default: false, null: false
+    t.float "traded_value", default: 0.0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["date", "stattrak", "souvenir", "in_game_store"], name: "index_market_daily_stats_on_date_and_segment", unique: true
   end
 
   create_table "skin_item_histories", force: :cascade do |t|

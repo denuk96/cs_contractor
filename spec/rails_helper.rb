@@ -86,6 +86,11 @@ RSpec.configure do |config|
 
   config.include FactoryBot::Syntax::Methods
 
+  # Jobs that fan out to other jobs are asserted on what they enqueue, so keep
+  # `perform_later` from running inline during specs.
+  config.include ActiveJob::TestHelper
+  config.before { ActiveJob::Base.queue_adapter = :test }
+
   Shoulda::Matchers.configure do |shoulda_config|
     shoulda_config.integrate do |with|
       with.test_framework :rspec
