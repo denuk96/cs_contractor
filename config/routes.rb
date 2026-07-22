@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   root "home#index"
 
   get "feed", to: "feed#index", as: :feed
+  get "overview", to: "market_overview#index", as: :market_overview
   get "float-calculator", to: "float_calculator#index", as: :float_calculator
 
   resources :skin_items, only: [:show] do

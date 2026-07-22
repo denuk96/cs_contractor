@@ -42,6 +42,9 @@
               <%= link_to "Feed", feed_path, class: "nav-link #{'active' if request.path.start_with?('/feed')}" %>
             </li>
             <li class="nav-item">
+              <%= link_to "Overview", market_overview_path, class: "nav-link #{'active' if request.path.start_with?('/overview')}" %>
+            </li>
+            <li class="nav-item">
               <%= link_to "Tradeup Finder", new_tradeup_search_path, class: "nav-link #{'active' if request.path.start_with?('/tradeup_searches')}" %>
             </li>
             <li class="nav-item">

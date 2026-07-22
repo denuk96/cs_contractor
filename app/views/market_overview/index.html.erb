@@ -1,0 +1,198 @@
+<div class="container mt-4" data-controller="popover">
+  <h1 class="mb-1">Market Overview</h1>
+  <p class="text-muted">
+    Every tracked item rolled into one snapshot per day.
+    <% if @latest_date %>
+      Latest snapshot: <strong><%= @latest_date %></strong>.
+    <% end %>
+  </p>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: market_overview_path, method: :get, class: "row g-3" do |f| %>
+        <div class="col-md-3">
+          <%= f.label :start_date, "From", class: "form-label" %>
+          <%= f.date_field :start_date, value: params[:start_date] || @start_date, class: "form-control" %>
+        </div>
+        <div class="col-md-3">
+          <%= f.label :end_date, "To", class: "form-label" %>
+          <%= f.date_field :end_date, value: params[:end_date] || @end_date, class: "form-control" %>
+        </div>
+        <div class="col-md-2">
+          <%= f.label :stattrak, "StatTrak™", class: "form-label" %>
+          <%= f.select :stattrak, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:stattrak] }, { class: "form-select" } %>
+        </div>
+        <div class="col-md-2">
+          <%= f.label :souvenir, "Souvenir", class: "form-label" %>
+          <%= f.select :souvenir, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:souvenir] || "false" }, { class: "form-select" } %>
+        </div>
+        <div class="col-md-2">
+          <%= f.label :in_game_store, "In-Store", class: "form-label" %>
+          <%= f.select :in_game_store, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:in_game_store] }, { class: "form-select" } %>
+        </div>
+        <div class="col-12">
+          <%= f.submit "Apply", class: "btn btn-primary" %>
+          <%= link_to "Reset", market_overview_path, class: "btn btn-secondary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @days.blank? %>
+    <div class="alert alert-info">No market history in this range yet.</div>
+  <% else %>
+    <!-- KPI tiles: latest snapshot vs ~1 week earlier -->
+    <div class="row g-3 mb-5">
+      <% @kpis.each do |kpi| %>
+        <div class="col-6 col-md-3">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="text-muted small text-uppercase"><%= kpi[:label] %></div>
+              <div class="fs-4 fw-bold"><%= market_metric(kpi[:value], kpi[:format]) %></div>
+              <% if kpi[:change] %>
+                <span class="badge <%= kpi[:change] >= 0 ? 'bg-success' : 'bg-danger' %>">
+                  <i class="bi bi-arrow-<%= kpi[:change] >= 0 ? 'up' : 'down' %>"></i>
+                  <%= number_with_precision(kpi[:change].abs, precision: 1) %>%
+                </span>
+                <span class="text-muted small">vs <%= kpi[:compared_to] %></span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="row">
+      <!-- 1. Sold Volume -->
+      <div class="col-md-12 mb-5">
+        <h3>
+          Sold Volume
+          <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Market Demand" data-bs-content="Total units sold across every tracked item each day. The average line normalises for coverage changes — if the total climbs but the average is flat, you are just tracking more items."></i>
+        </h3>
+        <%= line_chart @sold_volume_data, library: {
+          scales: {
+            'volume-axis': { type: 'linear', position: 'left', title: { display: true, text: 'Units Sold' } },
+            'avg-axis': { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Per Item' } }
+          }
+        } %>
+      </div>
+
+      <!-- 2. Offer Volume -->
+      <div class="col-md-12 mb-5">
+        <h3>
+          Offer Volume (Supply)
+          <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Market Supply" data-bs-content="Total listings on the market. A sustained decline market-wide means supply is drying up everywhere, not just on a single item — usually the precondition for a broad price run."></i>
+        </h3>
+        <%= line_chart @offer_volume_data, library: {
+          scales: {
+            'volume-axis': { type: 'linear', position: 'left', title: { display: true, text: 'Listings' } },
+            'avg-axis': { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Per Item' } }
+          }
+        } %>
+      </div>
+
+      <!-- 3. Buy Order Count -->
+      <div class="col-md-12 mb-5">
+        <h3>
+          Buy Order Count (Demand)
+          <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Standing Demand" data-bs-content="Total open buy orders. Rising buy orders while supply falls is market-wide accumulation; both falling together is money leaving the market."></i>
+        </h3>
+        <%= line_chart @buy_order_data, library: {
+          scales: {
+            'volume-axis': { type: 'linear', position: 'left', title: { display: true, text: 'Buy Orders' } },
+            'avg-axis': { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Per Item' } }
+          }
+        } %>
+      </div>
+
+      <!-- 4. Buy Wall -->
+      <div class="col-md-12 mb-5">
+        <h3>
+          Buy Wall Ratio
+          <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Buy Wall" data-bs-content="Formula: total Buy Orders / total Offer Volume. The green line rising while the red supply line falls is the market-wide squeeze setup."></i>
+        </h3>
+        <%= line_chart @buy_wall_data, library: {
+          scales: {
+            'ratio-axis': { type: 'linear', position: 'left', ticks: { callback: "function(value) { return value.toFixed(1) + 'x'; }" }, title: { display: true, text: 'Buy Wall Ratio' } },
+            'volume-axis': { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Offer Volume' } }
+          }
+        } %>
+      </div>
+
+      <!-- 5. Turnover -->
+      <div class="col-md-12 mb-5">
+        <h3>
+          Turnover Rate
+          <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Turnover" data-bs-content="Formula: total Sold / total Offer Volume. How fast the whole market eats through its own supply each day. Under 5% the market is dead; a sharp climb means supply is vanishing faster than it is being relisted."></i>
+        </h3>
+        <%= line_chart @turnover_data, library: {
+          scales: {
+            'percent-axis': { type: 'linear', position: 'left', ticks: { callback: "function(value) { return value.toFixed(1) + '%'; }" }, title: { display: true, text: 'Turnover Rate (%)' } },
+            'volume-axis': { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Units Sold' } }
+          }
+        } %>
+      </div>
+
+      <!-- 6. Money moved -->
+      <div class="col-md-12 mb-5">
+        <h3>
+          Traded &amp; Listed Value
+          <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Money Flow" data-bs-content="Traded Value = sold units x latest price (money that actually changed hands). Listed Value = listings x latest price (money asked for). Traded value rising while listed value falls means real demand, not just repricing."></i>
+        </h3>
+        <%= line_chart @value_data, library: {
+          scales: {
+            'money-axis': { type: 'linear', position: 'left', ticks: { callback: "function(value) { return '$' + value.toLocaleString(); }" }, title: { display: true, text: 'Traded Value (USD)' } },
+            'listed-axis': { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: "function(value) { return '$' + value.toLocaleString(); }" }, title: { display: true, text: 'Listed Value (USD)' } },
+            'price-axis': { type: 'linear', position: 'right', display: false }
+          }
+        } %>
+      </div>
+
+      <!-- 7. Coverage -->
+      <div class="col-md-12 mb-5">
+        <h3>
+          Items Tracked <small class="text-muted">(coverage)</small>
+          <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Read the totals against this" data-bs-content="How many items had a snapshot that day. Jumps here move every total chart above, so check this before reading a spike as market movement."></i>
+        </h3>
+        <%= line_chart @coverage_data, library: {
+          scales: { y: { title: { display: true, text: 'Items' } } }
+        } %>
+      </div>
+
+      <!-- Day-by-day table -->
+      <div class="col-md-12 mb-5">
+        <h3>Day by Day</h3>
+        <div class="table-responsive" style="max-height: 500px;">
+          <table class="table table-sm table-striped table-hover align-middle">
+            <thead class="table-dark position-sticky top-0">
+              <tr>
+                <th>Date</th>
+                <th class="text-end">Items</th>
+                <th class="text-end">Sold</th>
+                <th class="text-end">Offers</th>
+                <th class="text-end">Buy Orders</th>
+                <th class="text-end">Buy Wall</th>
+                <th class="text-end">Turnover</th>
+                <th class="text-end">Traded Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @days.reverse_each do |day| %>
+                <tr>
+                  <td><%= day.date %></td>
+                  <td class="text-end"><%= number_with_delimiter(day.items_tracked) %></td>
+                  <td class="text-end"><%= number_with_delimiter(day.sold_volume) %></td>
+                  <td class="text-end"><%= number_with_delimiter(day.offer_volume) %></td>
+                  <td class="text-end"><%= number_with_delimiter(day.buy_order_volume) %></td>
+                  <td class="text-end"><%= market_metric(day.buy_wall_ratio, :ratio) %></td>
+                  <td class="text-end"><%= market_metric(day.turnover_rate, :percent) %></td>
+                  <td class="text-end"><%= market_metric(day.traded_value, :currency) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
