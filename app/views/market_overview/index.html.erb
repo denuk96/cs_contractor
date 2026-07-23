@@ -64,12 +64,12 @@
 
     <div class="row g-4 mb-4">
       <% @charts.each do |chart| %>
-        <div class="col-lg-6">
+        <div class="col-12">
           <h5>
             <%= chart[:title] %>
             <i class="bi bi-info-circle text-muted" data-bs-toggle="popover" data-bs-trigger="hover" title="<%= chart[:title] %>" data-bs-content="<%= chart[:hint] %>"></i>
           </h5>
-          <%= line_chart chart[:data], colors: [chart[:color]], height: "260px", library: market_chart_library(chart) %>
+          <%= line_chart chart[:data], colors: [chart[:color]], height: "300px", library: market_chart_library(chart) %>
         </div>
       <% end %>
     </div>
@@ -80,12 +80,12 @@
     </h4>
     <div class="row g-4">
       <% @per_item_charts.each do |chart| %>
-        <div class="col-lg-4">
+        <div class="col-12">
           <h6>
             <%= chart[:title] %>
             <i class="bi bi-info-circle text-muted" data-bs-toggle="popover" data-bs-trigger="hover" title="<%= chart[:title] %>" data-bs-content="<%= chart[:hint] %>"></i>
           </h6>
-          <%= line_chart chart[:data], colors: [chart[:color]], height: "220px", library: market_chart_library(chart) %>
+          <%= line_chart chart[:data], colors: [chart[:color]], height: "280px", library: market_chart_library(chart) %>
         </div>
       <% end %>
     </div>
