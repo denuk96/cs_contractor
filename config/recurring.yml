@@ -32,4 +32,4 @@ production:
 
   recalculate_market_stats:
     class: RecalculateMarketStatsJob
-    schedule: at 3am every day
+    schedule: every 3 hours
