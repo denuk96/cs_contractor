@@ -1,0 +1,34 @@
+<%# locals: skin_item, snapshot, requested_date, first_date, last_date %>
+<%= turbo_frame_tag "skin_item_metadata" do %>
+  <% if snapshot.nil? %>
+    <p class="text-muted mb-0">No metadata recorded for this item yet.</p>
+  <% else %>
+    <%= form_with url: metadata_skin_item_path(skin_item), method: :get,
+          class: "d-flex flex-wrap align-items-end gap-2 mb-3",
+          data: { controller: "autosubmit" } do |f| %>
+      <div>
+        <%= f.label :date, "Snapshot date", class: "form-label mb-1 small text-muted" %>
+        <%= f.date_field :date, value: snapshot.date, min: first_date, max: last_date,
+              class: "form-control form-control-sm",
+              data: { action: "change->autosubmit#submit" } %>
+      </div>
+      <%= f.submit "Show", class: "btn btn-sm btn-outline-secondary",
+            data: { autosubmit_target: "submit" } %>
+      <% if snapshot.date != last_date %>
+        <%= link_to "Latest", metadata_skin_item_path(skin_item), class: "btn btn-sm btn-link" %>
+      <% end %>
+    <% end %>
+
+    <% if snapshot.date != requested_date %>
+      <p class="small text-warning-emphasis mb-2">
+        No snapshot on <%= requested_date %> — showing the closest available date.
+      </p>
+    <% end %>
+
+    <% if snapshot.metadata.present? %>
+      <pre class="mb-0 overflow-auto"><%= JSON.pretty_generate(snapshot.metadata) %></pre>
+    <% else %>
+      <p class="text-muted mb-0">No metadata recorded for this snapshot.</p>
+    <% end %>
+  <% end %>
+<% end %>

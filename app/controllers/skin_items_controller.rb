@@ -33,9 +33,10 @@ class SkinItemsController < ApplicationController
     @variant_wears = variants.wears
     @variant_rows  = variants.rows
 
+    @metadata_locals = metadata_locals(@skin_item)
+
     history = @skin_item.skin_item_histories.order(date: :asc)
     latest_history = history.last
-    @latest_metadata = latest_history&.metadata
 
     # Turnover Rate History
     @turnover_history = history.map do |h|
@@ -107,5 +108,44 @@ class SkinItemsController < ApplicationController
     @price_discrepancy     = cross_market.discrepancy
     @steam_reference_price = cross_market.steam_reference_price
     @latest_history_date   = cross_market.snapshot_date
+  end
+
+  # Metadata for a single history snapshot, swapped into the page's turbo frame
+  # when a date is picked.
+  def metadata
+    skin_item = SkinItem.find(params[:id])
+
+    render partial: "skin_items/metadata", locals: metadata_locals(skin_item)
+  end
+
+  private
+
+  # Resolves the snapshot to display: the requested date when it exists,
+  # otherwise the closest one available, defaulting to the newest snapshot.
+  def metadata_locals(skin_item)
+    histories  = skin_item.skin_item_histories
+    first_date = histories.minimum(:date)
+    last_date  = histories.maximum(:date)
+    requested  = parse_metadata_date(params[:date]) || last_date
+
+    snapshot =
+      if requested
+        histories.where(date: ..requested).order(date: :desc).first ||
+          histories.order(date: :asc).first
+      end
+
+    {
+      skin_item: skin_item,
+      snapshot: snapshot,
+      requested_date: requested,
+      first_date: first_date,
+      last_date: last_date
+    }
+  end
+
+  def parse_metadata_date(value)
+    Date.parse(value.to_s)
+  rescue Date::Error
+    nil
   end
 end
