@@ -62,7 +62,7 @@ module Import
             buyordermedian: price["buyordermedian"],
             buyorderavg: price["buyorderavg"],
             offervolume: price["offervolume"],
-            all_markets_quantity: (price["prices"].sum { |p| p["quantity"] } + price["offervolume"]),
+            all_markets_quantity: Import::MarketPrices.total_market_quantity(price),
             all_markets_weighted_median_price:,
             date: Time.zone.today,
             metadata: price

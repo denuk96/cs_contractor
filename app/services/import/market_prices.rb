@@ -9,8 +9,47 @@ module Import
     STEAM_PRICE_KEYS = %w[pricelatest pricelatestsell pricemedian24h].freeze
     UTC = ActiveSupport::TimeZone["UTC"]
 
-    def self.call(...)
-      new(...).call
+    class << self
+      def call(...)
+        new(...).call
+      end
+
+      # steamwebapi keeps every intraday snapshot it took of a market in the
+      # same `prices` array, so one source can appear dozens of times (Skinport
+      # routinely does) and the raw array double counts supply. Keep a single
+      # entry per source: the freshest `created_at`, falling back to the last
+      # occurrence when timestamps are missing or tie.
+      def deduped_price_entries(payload)
+        Array((payload || {})["prices"])
+          .select { |entry| entry.is_a?(Hash) && entry["source"].present? }
+          .group_by { |entry| entry["source"] }
+          .values
+          .map { |entries| freshest(entries) }
+      end
+
+      # Supply across every market we track: one quantity per third-party
+      # market plus Steam's own offer volume.
+      def total_market_quantity(payload)
+        deduped_price_entries(payload).sum { |entry| entry["quantity"].to_i } +
+          (payload || {})["offervolume"].to_i
+      end
+
+      # steamwebapi timestamps are UTC ("2026-06-07 08:48:10").
+      def parse_time(value)
+        return if value.blank?
+
+        UTC.parse(value.to_s)
+      rescue ArgumentError, TypeError
+        nil
+      end
+
+      private
+
+      def freshest(entries)
+        entries.each_with_index.max_by do |entry, index|
+          [parse_time(entry["created_at"])&.to_i || -1, index]
+        end.first
+      end
     end
 
     def initialize(skin_item_history_id, payload)
@@ -32,17 +71,16 @@ module Import
     attr_reader :skin_item_history_id, :payload
 
     def market_rows
-      Array(payload["prices"]).filter_map do |entry|
-        source = entry["source"].presence
+      self.class.deduped_price_entries(payload).filter_map do |entry|
         price = entry["price"].to_f
-        next if source.nil? || price <= 0
+        next if price <= 0
 
         row(
-          source: source,
+          source: entry["source"],
           price: price,
           quantity: entry["quantity"].to_i,
           kind: entry["type"].presence || "offer",
-          source_updated_at: parse_time(entry["created_at"])
+          source_updated_at: self.class.parse_time(entry["created_at"])
         )
       end
     end
@@ -56,7 +94,7 @@ module Import
         price: price,
         quantity: payload["offervolume"].to_i,
         kind: "offer",
-        source_updated_at: parse_time(payload.dig("priceupdatedat", "date"))
+        source_updated_at: self.class.parse_time(payload.dig("priceupdatedat", "date"))
       )
     end
 
@@ -72,15 +110,6 @@ module Import
         created_at: now,
         updated_at: now
       }
-    end
-
-    # steamwebapi timestamps are UTC ("2026-06-07 08:48:10").
-    def parse_time(value)
-      return if value.blank?
-
-      UTC.parse(value.to_s)
-    rescue ArgumentError, TypeError
-      nil
     end
   end
 end
