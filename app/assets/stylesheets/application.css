@@ -1,27 +1,246 @@
 /*
- * This is a manifest file that'll be compiled into application.css.
+ * CS Contractor v2 — design tokens and base layer.
  *
- * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
- * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
- * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
- * depending on specificity.
+ * Every colour in the app resolves to one of the variables below; the only
+ * ad-hoc hexes allowed are the brand orange and the rarity/chart ramps, which
+ * are themselves declared here as tokens.
  *
- * Consider organizing styles into separate files for maintainability.
+ * Loaded before components.css and the per-page sheets, and after Bootstrap so
+ * the token layer owns colour. Bootstrap is kept only for layout primitives.
  */
 
-/* "Latest Metadata" disclosure card: a native <details> toggle (no JS needed).
-   Hide the default marker, make the whole header a button, and rotate our own
-   chevron to reflect the open/closed state. */
-details.metadata-toggle > summary {
-  cursor: pointer;
-  list-style: none;
+/* ---------------------------------------------------------------- tokens -- */
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* surfaces & lines */
+  --canvas: #0c0e11;
+  --panel: #0f1216;
+  --raised: #12161b;
+  --input: #171b21;
+  --sel: #1e242c;
+  --hover: #151a20;
+  --rowstar: #131820;
+  --rowline: #171b21;
+  --navbar: #111418;
+  --grid: #1c2229;
+  --line: #1e232a;
+  --line2: #232a33;
+  --edge: #262d37;
+  --edge2: #2a313a;
+  --edge3: #3a4450;
+  --chipbg: #1a2029;
+  --chipborder: #2b3441;
+  --calc-scrim: rgba(6, 8, 10, .66);
+  --scrim: rgba(6, 8, 10, .6);
+
+  /* text ramp */
+  --text: #ffffff;
+  --text2: #e6e8ec;
+  --t3: #c3c9d2;
+  --t4: #9aa3ae;
+  --t5: #8d96a2;
+  --t6: #79828f;
+  --t7: #6f7885;
+  --t8: #5d6673;
+  --t9: #4e5762;
+  --t10: #39414b;
+  --t11: #333b45;
+
+  /* direction & severity */
+  --good: #2fbf85;
+  --bad: #e8635f;
+  --moon: #f0736f;
+  --warn: #eda100;
+  --info: #4a95ee;
+  --dead: #3b434e;
+  --warnline: #4a3c12;
+  --sev-good-bg: #12332a;
+  --sev-warn-bg: #3a2e0c;
+  --sev-bad-bg: #3d1a1a;
+  --sev-dead-bg: #22282f;
+  --sev-info-bg: #132437;
+  --pump-bg: #3d1a1a;
+  --pump-text: #ffb3b0;
+
+  /* rarity ramp — lifted for dark surfaces, each with a tint ground */
+  --rar-consumer: #9aa8bb;      --rartint-consumer: #20262e;
+  --rar-industrial: #54a0f0;    --rartint-industrial: #132437;
+  --rar-milspec: #6f7df5;       --rartint-milspec: #181c3d;
+  --rar-restricted: #c46bff;    --rartint-restricted: #2a1a3d;
+  --rar-classified: #ec5fdd;    --rartint-classified: #33143a;
+  --rar-covert: #f0736f;        --rartint-covert: #3d1a1a;
+  --rar-extraordinary: #d9a83a; --rartint-extraordinary: #33280c;
 }
-details.metadata-toggle > summary::-webkit-details-marker {
-  display: none;
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --canvas: #eef0f3;
+  --panel: #ffffff;
+  --raised: #f8f9fb;
+  --input: #ffffff;
+  --sel: #e5e9ee;
+  --hover: #f2f4f7;
+  --rowstar: #fdf7e8;
+  --rowline: #eceef2;
+  --navbar: #ffffff;
+  --grid: #e7eaee;
+  --line: #dfe3e9;
+  --line2: #d3d9e1;
+  --edge: #c9d0d9;
+  --edge2: #bcc4ce;
+  --edge3: #a4adb9;
+  --chipbg: #eef1f5;
+  --chipborder: #ccd3dc;
+  --calc-scrim: rgba(20, 24, 30, .42);
+  --scrim: rgba(20, 24, 30, .35);
+
+  --text: #11151a;
+  --text2: #1a1f26;
+  --t3: #39424d;
+  --t4: #4c5661;
+  --t5: #5a6470;
+  --t6: #69727e;
+  --t7: #737c88;
+  --t8: #8a929d;
+  --t9: #99a1ab;
+  --t10: #b2b9c2;
+  --t11: #c4cad2;
+
+  --good: #12805a;
+  --bad: #c0322e;
+  --moon: #c0322e;
+  --warn: #96690a;
+  --info: #3366cc;
+  --dead: #c4cad2;
+  --warnline: #e0cf9a;
+  --sev-good-bg: #dff3e9;
+  --sev-warn-bg: #fbf0d5;
+  --sev-bad-bg: #fbe4e3;
+  --sev-dead-bg: #eaedf1;
+  --sev-info-bg: #e4edfb;
+  --pump-bg: #fbe4e3;
+  --pump-text: #a32320;
+
+  /* light uses the app's own RARITY_COLORS, tinted at 12% alpha for grounds */
+  --rar-consumer: #6e7c91;      --rartint-consumer: #6e7c911f;
+  --rar-industrial: #3a7cc4;    --rartint-industrial: #3a7cc41f;
+  --rar-milspec: #3d4fd6;       --rartint-milspec: #3d4fd61f;
+  --rar-restricted: #8847ff;    --rartint-restricted: #8847ff1f;
+  --rar-classified: #b81fc9;    --rartint-classified: #b81fc91f;
+  --rar-covert: #d02b2b;        --rartint-covert: #d02b2b1f;
+  --rar-extraordinary: #a37b12; --rartint-extraordinary: #a37b121f;
 }
-details.metadata-toggle > summary .bi-chevron-right {
-  transition: transform 0.2s ease-in-out;
+
+/* Theme-independent by design: the tooltip inverts against both themes. */
+:root {
+  --tipbg: #242a32;
+  --tipborder: #2f3843;
+  --tip-text: #ffffff;
+  --tip-body: #a9b1bc;
+
+  --brand: #eb6834;
+  --brand-on: #160c07;
+  --brand-hover: #c9531f;
+
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ui: Archivo, "Helvetica Neue", Helvetica, sans-serif;
+
+  --shadow-tip: 0 6px 18px rgba(0, 0, 0, .28);
+  --shadow-pop: 0 10px 26px rgba(0, 0, 0, .35);
+  --shadow-modal: 0 24px 60px rgba(0, 0, 0, .4);
 }
-details.metadata-toggle[open] > summary .bi-chevron-right {
-  transform: rotate(90deg);
+
+[data-theme="light"] {
+  --tip-body: #c3c9d2;
 }
+
+/* ------------------------------------------------------------------ base -- */
+
+* { box-sizing: border-box; }
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--canvas);
+  color: var(--text2);
+  font-family: var(--ui);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body { min-height: 100vh; }
+
+a { color: var(--text2); text-decoration: none; }
+a:hover { color: var(--text); }
+
+p { text-wrap: pretty; }
+
+input,
+select,
+button,
+textarea { font-family: inherit; }
+
+::selection { background: #2a78d6; color: #fff; }
+
+h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: 600; color: var(--text); }
+
+h1 { font-size: 25px; letter-spacing: -.015em; }
+
+@keyframes pumpPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(224, 73, 72, .55); }
+  50% { box-shadow: 0 0 0 4px rgba(224, 73, 72, 0); }
+}
+
+@keyframes barGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes stripeSlide {
+  from { background-position: 0 0; }
+  to { background-position: 28px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+/* -------------------------------------------------- bootstrap correction -- */
+/*
+ * Bootstrap stays for its grid and utility classes, but it must not decide
+ * colour, type or control chrome. These rules hand those back to the tokens.
+ */
+
+.container, .container-fluid { max-width: none; }
+
+.btn:focus,
+.btn:active,
+.form-control:focus,
+.form-select:focus { box-shadow: none; }
+
+.form-control,
+.form-select {
+  background-color: var(--input);
+  border-color: var(--edge);
+  color: var(--text2);
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--input);
+  border-color: var(--edge3);
+  color: var(--text2);
+}
+
+.form-control::placeholder { color: var(--t8); }
+
+code, kbd, samp, pre { font-family: var(--mono); }

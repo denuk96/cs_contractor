@@ -1,0 +1,217 @@
+/*
+ * CS Contractor v2 — market overview.
+ *
+ * The whole market as one series per day: a filter bar, a 3x3 KPI band, the
+ * nine totals, their coverage-adjusted per-item counterparts, and the same
+ * numbers again as a table for anyone who would rather read than look.
+ */
+
+.ov-filters {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 13px 16px;
+}
+
+.ov-filters .field { min-width: 150px; }
+
+.ov-filter-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* ------------------------------------------------------------- KPI band -- */
+
+.kpi-band {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.kpi {
+  background: var(--raised);
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.kpi-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.kpi-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: block;
+  flex: none;
+}
+
+.kpi-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--t6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpi-value {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.15;
+}
+
+.kpi-foot {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.kpi-change {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.kpi-change.up { background: var(--sev-good-bg); color: var(--good); }
+.kpi-change.down { background: var(--sev-bad-bg); color: var(--bad); }
+.kpi-change.flat { background: var(--sev-dead-bg); color: var(--t5); }
+
+.kpi-vs {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--t8);
+}
+
+@media (max-width: 900px) {
+  .kpi-band { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ---------------------------------------------------------------- charts -- */
+/*
+ * One metric per chart, one axis per chart: a percentage and a six-figure
+ * volume share no scale. The heading names the metric and repeats its latest
+ * value, so the block reads without touching the plot.
+ */
+
+.chart-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chart-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chart-block-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chart-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  display: block;
+  flex: none;
+}
+
+.chart-block-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.chart-latest {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+  color: var(--t5);
+  white-space: nowrap;
+}
+
+.chart-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px 8px;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------ day by day -- */
+
+.day-table-wrap {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: auto;
+  background: var(--panel);
+  max-height: 500px;
+}
+
+.day-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+}
+
+.day-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--raised);
+  border-bottom: 1px solid var(--line2);
+  padding: 9px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--t6);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.day-table thead th:first-child { text-align: left; }
+
+.day-table tbody td {
+  padding: 7px 12px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  color: var(--t3);
+  text-align: right;
+  border-bottom: 1px solid var(--rowline);
+  white-space: nowrap;
+}
+
+.day-table tbody td:first-child { text-align: left; color: var(--t5); }
+
+.day-table tbody tr:nth-child(even) { background: var(--hover); }
+.day-table tbody tr:hover { background: var(--sel); }
+
+.day-table td.flag { color: var(--warn); font-weight: 700; }

@@ -1,0 +1,14 @@
+<%# Adjusted float calculator. Reachable from the navbar on every page.
+    Formula and the three blank-out conditions mirror float_calculator_controller.js;
+    each condition gets an explanatory state instead of an empty card. %>
+<div class="modal-scrim" data-float-calculator-target="scrim" data-action="click->float-calculator#closeFromScrim keydown@window->float-calculator#closeOnEscape" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="Adjusted Float Calculator">
+    <div class="modal-head">
+      <span class="modal-title">Adjusted Float Calculator</span>
+      <div class="nav-spacer"></div>
+      <button type="button" class="modal-x" data-action="float-calculator#close" aria-label="Close">&times;</button>
+    </div>
+
+    <%= render "shared/float_calculator_fields" %>
+  </div>
+</div>

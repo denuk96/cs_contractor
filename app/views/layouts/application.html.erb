@@ -1,13 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html data-theme="dark" data-bs-theme="dark">
   <head>
-    <title><%= content_for(:title) || "Cs Contractor" %></title>
+    <title><%= content_for(:title) || "CS Contractor" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Cs Contractor">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+
+    <%# Paint the stored theme before first paint so the page never flashes the
+        wrong one. Mirrored onto data-bs-theme so Bootstrap's own primitives and
+        the native scrollbars/date pickers follow along. %>
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("cs-theme");
+          if (t !== "light" && t !== "dark") t = "dark";
+          document.documentElement.setAttribute("data-theme", t);
+          document.documentElement.setAttribute("data-bs-theme", t);
+        } catch (e) {}
+      })();
+    </script>
 
     <%= yield :head %>
 
@@ -18,77 +32,53 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%# Token layer first, then the shared vocabulary, then the page sheets. %>
+    <%= stylesheet_link_tag "application", "components", "screener", "feed", "item", "overview", "tradeup",
+          "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-      <div class="container">
-        <a class="navbar-brand" href="/">CS Contractor</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <a class="nav-link" href="/">Home</a>
-            </li>
-            <li class="nav-item">
-              <%= link_to "Feed", feed_path, class: "nav-link #{'active' if request.path.start_with?('/feed')}" %>
-            </li>
-            <li class="nav-item">
-              <%= link_to "Overview", market_overview_path, class: "nav-link #{'active' if request.path.start_with?('/overview')}" %>
-            </li>
-            <li class="nav-item">
-              <%= link_to "Tradeup Finder", new_tradeup_search_path, class: "nav-link #{'active' if request.path.start_with?('/tradeup_searches')}" %>
-            </li>
-            <li class="nav-item">
-              <%= link_to "Jobs", "/jobs", class: "nav-link #{'active' if request.path.start_with?('/jobs')}" %>
-            </li>
-          </ul>
-          <button class="btn btn-outline-light btn-sm ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#floatCalculatorPanel">
-            <i class="bi bi-calculator"></i> Float Calc
-          </button>
-        </div>
+  <body data-controller="theme tip float-calculator" data-action="mouseover@document->tip#show mouseout@document->tip#hide scroll@window->tip#dismiss">
+    <nav class="nav-bar">
+      <a href="/" class="nav-brand">
+        <span class="nav-brand-name">CS&thinsp;CONTRACTOR</span>
+        <span class="nav-brand-v">v2</span>
+      </a>
+
+      <div class="nav-links">
+        <%= link_to "Trending", root_path, class: "nav-link-item #{'active' if request.path == root_path}" %>
+        <%= link_to "Feed", feed_path, class: "nav-link-item #{'active' if request.path.start_with?('/feed')}" %>
+        <%= link_to "Overview", market_overview_path, class: "nav-link-item #{'active' if request.path.start_with?('/overview')}" %>
+        <%= link_to "Tradeup Finder", new_tradeup_search_path, class: "nav-link-item #{'active' if request.path.start_with?('/tradeup_searches')}" %>
+        <%= link_to "Jobs", "/jobs", class: "nav-link-item #{'active' if request.path.start_with?('/jobs')}" %>
+      </div>
+
+      <div class="nav-spacer"></div>
+
+      <div class="nav-right">
+        <span class="nav-status">
+          <span class="nav-status-dot"></span>LIVE · <%= Time.now.utc.strftime("%H:%M") %> UTC
+        </span>
+        <button type="button" class="btn-ghost mono" data-theme-target="toggle" data-action="theme#toggle">LIGHT</button>
+        <button type="button" class="btn-ghost" data-action="float-calculator#open">Float Calc</button>
       </div>
     </nav>
 
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="floatCalculatorPanel" data-controller="float-calculator">
-      <div class="offcanvas-header">
-        <h5 class="offcanvas-title">Adjusted Float Calculator</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-      </div>
-      <div class="offcanvas-body">
-        <p class="text-muted small">Formula: <code>(current − min) / (max − min)</code></p>
-        <div class="mb-3">
-          <label class="form-label">Min Float</label>
-          <input type="number" class="form-control" step="0.0001" min="0" max="1" placeholder="e.g. 0.25"
-                 data-float-calculator-target="minFloat" data-action="input->float-calculator#calculate">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Max Float</label>
-          <input type="number" class="form-control" step="0.0001" min="0" max="1" placeholder="e.g. 0.75"
-                 data-float-calculator-target="maxFloat" data-action="input->float-calculator#calculate">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Item Float</label>
-          <input type="number" class="form-control" step="0.0001" min="0" max="1" placeholder="e.g. 0.26"
-                 data-float-calculator-target="currentFloat" data-action="input->float-calculator#calculate">
-        </div>
-        <div class="d-none card" data-float-calculator-target="result">
-          <div class="card-body text-center">
-            <div class="display-6 fw-bold text-primary" data-float-calculator-target="adjValue"></div>
-            <div class="text-muted small mt-1" data-float-calculator-target="interpretation"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <%= yield %>
+
+    <%= render "layouts/float_calculator" %>
+
+    <%# One shared tooltip layer. Any element with data-tip="Title|Body" drives it. %>
+    <div class="tip" data-tip-target="box" hidden>
+      <span class="tip-title" data-tip-target="title"></span>
+      <span class="tip-body" data-tip-target="body"></span>
+    </div>
   </body>
 </html>

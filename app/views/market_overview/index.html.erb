@@ -1,126 +1,151 @@
-<div class="container mt-4" data-controller="popover">
-  <h1 class="mb-1">Market Overview</h1>
-  <p class="text-muted">
-    Every tracked item rolled into one snapshot per day.
-    <% if @latest_date %>
-      Latest snapshot: <strong><%= @latest_date %></strong>.
-    <% end %>
-  </p>
-
-  <div class="card mb-4">
-    <div class="card-body">
-      <%= form_with url: market_overview_path, method: :get, class: "row g-3" do |f| %>
-        <div class="col-md-3">
-          <%= f.label :start_date, "From", class: "form-label" %>
-          <%= f.date_field :start_date, value: params[:start_date] || @start_date, class: "form-control" %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :end_date, "To", class: "form-label" %>
-          <%= f.date_field :end_date, value: params[:end_date] || @end_date, class: "form-control" %>
-        </div>
-        <div class="col-md-2">
-          <%= f.label :stattrak, "StatTrak™", class: "form-label" %>
-          <%= f.select :stattrak, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:stattrak] }, { class: "form-select" } %>
-        </div>
-        <div class="col-md-2">
-          <%= f.label :souvenir, "Souvenir", class: "form-label" %>
-          <%= f.select :souvenir, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:souvenir] || "false" }, { class: "form-select" } %>
-        </div>
-        <div class="col-md-2">
-          <%= f.label :in_game_store, "In-Store", class: "form-label" %>
-          <%= f.select :in_game_store, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:in_game_store] }, { class: "form-select" } %>
-        </div>
-        <div class="col-12">
-          <%= f.submit "Apply", class: "btn btn-primary" %>
-          <%= link_to "Reset", market_overview_path, class: "btn btn-secondary" %>
-        </div>
-      <% end %>
-    </div>
+<div class="page">
+  <div class="section-head" style="flex-direction: column; align-items: flex-start; gap: 5px">
+    <span class="eyebrow eyebrow-brand">Aggregate</span>
+    <h1>Market Overview</h1>
+    <p class="prose">
+      Every tracked item rolled into one snapshot per day.
+      <% if @latest_date %>Latest snapshot <span class="mono" style="color: var(--text2)"><%= @latest_date %></span>.<% end %>
+    </p>
   </div>
 
+  <%= form_with url: market_overview_path, method: :get, class: "panel ov-filters" do |f| %>
+    <label class="field">
+      <span class="field-label">From</span>
+      <%= f.date_field :start_date, value: params[:start_date] || @start_date, class: "ctl ctl-num" %>
+    </label>
+    <label class="field">
+      <span class="field-label">To</span>
+      <%= f.date_field :end_date, value: params[:end_date] || @end_date, class: "ctl ctl-num" %>
+    </label>
+
+    <% [["stattrak", "StatTrak™", nil], ["souvenir", "Souvenir", "false"], ["in_game_store", "In-Store", nil]].each do |key, label, default| %>
+      <% current = (params[key] || default).to_s %>
+      <div class="field">
+        <span class="field-label"><%= label %></span>
+        <div class="tri-opts">
+          <% [["", "ANY"], ["true", "YES"], ["false", "NO"]].each do |value, text| %>
+            <label class="tri-opt">
+              <%= radio_button_tag key, value, current == value, class: "visually-hidden" %><%= text %>
+            </label>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="ov-filter-actions">
+      <%= button_tag "Apply", type: :submit, name: nil, class: "btn-primary-brand" %>
+      <%= link_to "Reset", market_overview_path, class: "btn-outline" %>
+    </div>
+  <% end %>
+
   <% if @days.blank? %>
-    <div class="alert alert-info">No market history in this range yet.</div>
+    <div class="panel empty">
+      <span class="empty-code">NO HISTORY</span>
+      <span class="empty-body">No market history in this range yet.</span>
+    </div>
   <% else %>
-    <!-- KPI tiles: latest snapshot vs the first day in range -->
-    <div class="row g-3 mb-5">
-      <% @kpis.each do |kpi| %>
-        <div class="col-6 col-md-3">
-          <div class="card h-100">
-            <div class="card-body">
-              <div class="text-muted small text-uppercase"><%= kpi[:label] %></div>
-              <div class="fs-4 fw-bold"><%= market_metric(kpi[:value], kpi[:format]) %></div>
-              <% if kpi[:change] %>
-                <span class="badge <%= kpi[:change] >= 0 ? 'bg-success' : 'bg-danger' %>">
-                  <i class="bi bi-arrow-<%= kpi[:change] >= 0 ? 'up' : 'down' %>"></i>
-                  <%= number_with_precision(kpi[:change].abs, precision: 1) %>%
-                </span>
-                <span class="text-muted small">vs <%= kpi[:compared_to] %></span>
-              <% end %>
-            </div>
+    <%# Latest snapshot against the first day in range, so each tile reads the
+        move across the whole period rather than a fixed lookback. %>
+    <div class="kpi-band">
+      <% @charts.each_with_index do |chart, index| %>
+        <% kpi = @kpis[index] %>
+        <div class="kpi">
+          <div class="kpi-head">
+            <span class="kpi-dot" style="background: <%= chart[:color] %>"></span>
+            <span class="kpi-label"><%= kpi[:label] %></span>
+            <%= info_dot(chart[:title], chart[:hint]) %>
+          </div>
+          <span class="kpi-value"><%= market_metric(kpi[:value], kpi[:format]) %></span>
+          <div class="kpi-foot">
+            <% if kpi[:change] %>
+              <span class="kpi-change <%= delta_class(kpi[:change]) %>">
+                <%= kpi[:change] >= 0 ? "▲" : "▼" %> <%= number_with_precision(kpi[:change].abs, precision: 1) %>%
+              </span>
+              <span class="kpi-vs">vs <%= kpi[:compared_to] %></span>
+            <% else %>
+              <span class="kpi-vs">single snapshot in range</span>
+            <% end %>
           </div>
         </div>
       <% end %>
     </div>
 
-    <div class="row g-4 mb-4">
-      <% @charts.each do |chart| %>
-        <div class="col-12">
-          <h5>
-            <%= chart[:title] %>
-            <i class="bi bi-info-circle text-muted" data-bs-toggle="popover" data-bs-trigger="hover" title="<%= chart[:title] %>" data-bs-content="<%= chart[:hint] %>"></i>
-          </h5>
-          <%= line_chart chart[:data], colors: [chart[:color]], height: "300px", library: market_chart_library(chart) %>
+    <div class="chart-stack">
+      <% @charts.each_with_index do |chart, index| %>
+        <div class="chart-block">
+          <div class="chart-block-head">
+            <span class="chart-dot" style="background: <%= chart[:color] %>"></span>
+            <span class="chart-block-title"><%= chart[:title] %></span>
+            <%= info_dot(chart[:title], chart[:hint]) %>
+            <div class="nav-spacer"></div>
+            <span class="chart-latest"><%= market_metric(@kpis[index][:value], chart[:unit]) %></span>
+          </div>
+          <div class="chart-panel">
+            <%= line_chart chart[:data], colors: [chart[:color]], height: "300px", library: market_chart_library(chart) %>
+          </div>
         </div>
       <% end %>
     </div>
 
-    <h4 class="mt-5">
-      Per Item <small class="text-muted">(coverage-adjusted)</small>
-      <i class="bi bi-info-circle text-muted" data-bs-toggle="popover" data-bs-trigger="hover" title="Why these exist" data-bs-content="The totals above move whenever the tracker starts following more items. Dividing by Items Tracked keeps a day comparable to one with different coverage."></i>
-    </h4>
-    <div class="row g-4">
+    <div class="section-head">
+      <span class="section-title">Per Item</span>
+      <span class="section-sub">coverage-adjusted</span>
+      <%= info_dot("Why these exist", "The totals above move whenever the tracker starts following more items. Dividing by Items Tracked keeps a day comparable to one with different coverage.") %>
+    </div>
+
+    <div class="chart-stack">
       <% @per_item_charts.each do |chart| %>
-        <div class="col-12">
-          <h6>
-            <%= chart[:title] %>
-            <i class="bi bi-info-circle text-muted" data-bs-toggle="popover" data-bs-trigger="hover" title="<%= chart[:title] %>" data-bs-content="<%= chart[:hint] %>"></i>
-          </h6>
-          <%= line_chart chart[:data], colors: [chart[:color]], height: "280px", library: market_chart_library(chart) %>
+        <div class="chart-block">
+          <div class="chart-block-head">
+            <span class="chart-dot" style="background: <%= chart[:color] %>"></span>
+            <span class="chart-block-title"><%= chart[:title] %></span>
+            <%= info_dot(chart[:title], chart[:hint]) %>
+            <div class="nav-spacer"></div>
+            <span class="chart-latest"><%= market_metric(@latest.public_send(chart[:metric]), chart[:unit]) %></span>
+          </div>
+          <div class="chart-panel">
+            <%= line_chart chart[:data], colors: [chart[:color]], height: "280px", library: market_chart_library(chart) %>
+          </div>
         </div>
       <% end %>
     </div>
 
-    <!-- Day-by-day table: the non-color reading of the same data -->
-    <h4 class="mt-5">Day by Day</h4>
-    <div class="table-responsive mb-5" style="max-height: 500px;">
-      <table class="table table-sm table-striped table-hover align-middle">
-        <thead class="table-dark position-sticky top-0">
+    <%# The same data without colour: buy walls over 5x and turnover over 10%
+        are called out, since those are the rows worth a second look. %>
+    <div class="section-head">
+      <span class="section-title">Day by Day</span>
+      <span class="section-sub"><%= pluralize(@days.size, "day") %> in range</span>
+    </div>
+
+    <div class="day-table-wrap">
+      <table class="day-table">
+        <thead>
           <tr>
             <th>Date</th>
-            <th class="text-end">Items</th>
-            <th class="text-end">Sold</th>
-            <th class="text-end">Offers</th>
-            <th class="text-end">Buy Orders</th>
-            <th class="text-end">Buy Wall</th>
-            <th class="text-end">Turnover</th>
-            <th class="text-end">Traded Value</th>
-            <th class="text-end">Listed Value</th>
-            <th class="text-end">Avg Price</th>
+            <th>Items</th>
+            <th>Sold</th>
+            <th>Offers</th>
+            <th>Buy Orders</th>
+            <th>Buy Wall</th>
+            <th>Turnover</th>
+            <th>Traded Value</th>
+            <th>Listed Value</th>
+            <th>Avg Price</th>
           </tr>
         </thead>
         <tbody>
           <% @days.reverse_each do |day| %>
             <tr>
               <td><%= day.date %></td>
-              <td class="text-end"><%= number_with_delimiter(day.items_tracked) %></td>
-              <td class="text-end"><%= number_with_delimiter(day.sold_volume) %></td>
-              <td class="text-end"><%= number_with_delimiter(day.offer_volume) %></td>
-              <td class="text-end"><%= number_with_delimiter(day.buy_order_volume) %></td>
-              <td class="text-end"><%= market_metric(day.buy_wall_ratio, :ratio) %></td>
-              <td class="text-end"><%= market_metric(day.turnover_rate, :percent) %></td>
-              <td class="text-end"><%= market_metric(day.traded_value, :currency) %></td>
-              <td class="text-end"><%= market_metric(day.listed_value, :currency) %></td>
-              <td class="text-end"><%= market_metric(day.avg_price, :currency) %></td>
+              <td><%= number_with_delimiter(day.items_tracked) %></td>
+              <td><%= number_with_delimiter(day.sold_volume) %></td>
+              <td><%= number_with_delimiter(day.offer_volume) %></td>
+              <td><%= number_with_delimiter(day.buy_order_volume) %></td>
+              <td class="<%= "flag" if day.buy_wall_ratio.to_f > 5 %>"><%= market_metric(day.buy_wall_ratio, :ratio) %></td>
+              <td class="<%= "flag" if day.turnover_rate.to_f > 10 %>"><%= market_metric(day.turnover_rate, :percent) %></td>
+              <td><%= market_metric(day.traded_value, :currency) %></td>
+              <td><%= market_metric(day.listed_value, :currency) %></td>
+              <td><%= market_metric(day.avg_price, :currency) %></td>
             </tr>
           <% end %>
         </tbody>

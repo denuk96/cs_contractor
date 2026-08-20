@@ -1,72 +1,126 @@
-<div class="container mt-4">
-  <h1 class="mb-4">Feed</h1>
-
-  <div class="mb-3">
-    <%= link_to "All", feed_path, class: "btn btn-sm me-1 #{params[:signal_type].present? ? 'btn-outline-primary' : 'btn-primary'}" %>
-    <% FeedItem.signal_types.each_key do |signal_type| %>
-      <%= link_to FeedItem::SIGNAL_LABELS.fetch(signal_type, signal_type.titleize), feed_path(signal_type: signal_type), class: "btn btn-sm me-1 #{params[:signal_type] == signal_type ? 'btn-primary' : 'btn-outline-primary'}" %>
-    <% end %>
-  </div>
-
-  <% if @feed_items.any? %>
-    <div class="d-flex justify-content-center">
-      <%= paginate @feed_items %>
+<div class="page">
+  <div class="feed-head">
+    <div class="field" style="gap: 4px">
+      <span class="eyebrow eyebrow-brand">Signals</span>
+      <h1>Feed</h1>
     </div>
-
-    <div class="list-group mb-4">
-      <% @feed_items.each do |feed_item| %>
-        <%= link_to skin_item_path(feed_item.skin_item), class: "list-group-item list-group-item-action" do %>
-          <div class="d-flex w-100 justify-content-between align-items-stretch">
-            <div class="flex-shrink-0 me-3" style="aspect-ratio: 1 / 1; max-width: 100px; max-height: 100px;">
-              <% if feed_item.skin_item.image.present? %>
-                <%= image_tag feed_item.skin_item.image, alt: feed_item.skin_item.name, class: "rounded w-100 h-100", style: "object-fit: cover;", loading: "lazy" %>
-              <% else %>
-                <div class="d-flex align-items-center justify-content-center bg-light rounded text-muted h-100 w-100">
-                  <i class="bi bi-image"></i>
-                </div>
-              <% end %>
-            </div>
-            <div class="flex-grow-1 me-3">
-              <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1"><%= feed_item.skin_item.name %></h5>
-                <small class="text-muted"><%= feed_item.occurred_on %></small>
-              </div>
-              <% collection_name = feed_item.skin_item.skin&.collection_name %>
-              <% if collection_name.present? %>
-                <small class="text-muted d-block mb-1"><%= collection_name %></small>
-              <% end %>
-              <span class="badge <%= feed_signal_badge_class(feed_item.signal_type) %> mb-2"><%= feed_item.signal_label %></span>
-              <p class="mb-1"><%= feed_item.headline %></p>
-              <% if feed_item.details.present? %>
-                <small class="text-muted">
-                  <% feed_item.details.each do |key, value| %>
-                    <span class="badge bg-light text-dark border me-1"><%= key.to_s.humanize %>: <%= value %></span>
-                  <% end %>
-                </small>
-              <% end %>
-            </div>
-            <% series = @chart_series[feed_item.id] %>
-            <% if series.present? && series.first[:data].present? %>
-              <div class="flex-shrink-0" style="width: 30%;">
-                <%= line_chart series, height: "60px", colors: ["#f0ad4e"], library: {
-                  plugins: { legend: { display: false } },
-                  scales: { x: { display: false }, y: { display: false } },
-                  elements: { point: { radius: 0 } }
-                } %>
-                <small class="text-muted d-block text-center"><%= series.first[:name] %> (14d)</small>
-              </div>
-            <% end %>
-          </div>
+    <span class="feed-count">
+      <%= number_with_delimiter(@feed_items.total_count) %>
+      active <%= "entry".pluralize(@feed_items.total_count) %>
+    </span>
+    <div class="nav-spacer"></div>
+    <div class="signal-pills">
+      <%= link_to feed_path, class: "signal-pill #{"on" unless FeedItem.signal_types.key?(params[:signal_type])}" do %>
+        All <span class="n"><%= feed_signal_counts.values.sum %></span>
+      <% end %>
+      <% FeedItem.signal_types.each_key do |signal_type| %>
+        <%= link_to feed_path(signal_type: signal_type),
+              class: "signal-pill #{"on" if params[:signal_type] == signal_type}" do %>
+          <%= FeedItem::SIGNAL_LABELS.fetch(signal_type, signal_type.titleize) %>
+          <span class="n"><%= feed_signal_counts.fetch(signal_type, 0) %></span>
         <% end %>
       <% end %>
     </div>
+  </div>
 
-    <div class="d-flex justify-content-center">
+  <% if @feed_items.any? %>
+    <div class="feed-groups">
+      <% @feed_items.group_by(&:occurred_on).each do |occurred_on, entries| %>
+        <div class="feed-group">
+          <div class="feed-divider">
+            <span class="feed-divider-label"><%= feed_group_label(occurred_on) %></span>
+            <span class="feed-divider-rule"></span>
+            <span class="feed-divider-count"><%= entries.size %></span>
+          </div>
+
+          <div class="feed-cards">
+            <% entries.each do |feed_item| %>
+              <%
+                skin_item = feed_item.skin_item
+                slug = feed_signal_slug(feed_item.signal_type)
+                rarity = skin_item.skin&.rarity || skin_item.rarity
+                collection = skin_item.skin&.collection_name
+                series = @chart_series[feed_item.id]
+                points = series&.first&.dig(:data)
+                latest = points&.last&.last
+              %>
+              <%= link_to skin_item_path(skin_item), class: "feed-card" do %>
+                <span class="thumb feed-thumb">
+                  <% if skin_item.image.present? %>
+                    <%= image_tag skin_item.image, alt: skin_item.name, loading: "lazy" %>
+                  <% else %>
+                    <%= item_abbreviation(skin_item.name) %>
+                  <% end %>
+                </span>
+
+                <span class="feed-body">
+                  <span class="feed-line">
+                    <span class="feed-name rar r-<%= rarity_slug(rarity) %>"><%= skin_item.name %></span>
+                    <% if skin_item.wear.present? %>
+                      <span class="feed-wear"><%= skin_item.wear %></span>
+                    <% end %>
+                    <% if rarity.present? %>
+                      <span class="rar-tag r-<%= rarity_slug(rarity) %>"><%= rarity.to_s.sub(" Grade", "").upcase %></span>
+                    <% end %>
+                  </span>
+
+                  <span class="feed-line">
+                    <span class="zone zone-<%= slug %>"><%= feed_item.signal_label.upcase %></span>
+                    <% if collection.present? %>
+                      <span class="feed-collection"><%= collection %></span>
+                    <% end %>
+                  </span>
+
+                  <p class="feed-headline"><%= feed_item.headline %></p>
+
+                  <% if feed_item.details.present? %>
+                    <span class="feed-details">
+                      <% feed_item.details.each do |key, value| %>
+                        <span class="kv-chip">
+                          <span class="k"><%= key.to_s.humanize %></span>
+                          <span class="v"><%= value %></span>
+                        </span>
+                      <% end %>
+                    </span>
+                  <% end %>
+                </span>
+
+                <span class="feed-spark">
+                  <% if points.present? %>
+                    <%= line_chart series, height: "60px", colors: [feed_signal_color(feed_item.signal_type)],
+                          library: {
+                            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                            scales: { x: { display: false }, y: { display: false } },
+                            elements: { point: { radius: 0 }, line: { borderWidth: 2, tension: 0.4, fill: false } },
+                            layout: { padding: 2 }
+                          } %>
+                    <span class="feed-spark-caption">
+                      <span class="feed-spark-name"><%= series.first[:name] %> · 14d</span>
+                      <span class="feed-spark-value zone-text-<%= slug %>"><%= latest %></span>
+                    </span>
+                  <% end %>
+                </span>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="feed-footer">
+      <span>
+        SHOWING <%= @feed_items.total_pages > 1 ? "#{@feed_items.offset_value + 1}–#{@feed_items.offset_value + @feed_items.size}" : "ALL #{@feed_items.total_count}" %>
+        · 50 PER PAGE
+      </span>
       <%= paginate @feed_items %>
+      <% if (refreshed_at = FeedItem.maximum(:updated_at)) %>
+        <span>LAST REFRESH <%= refreshed_at.utc.strftime("%Y-%m-%d %H:%M") %> UTC</span>
+      <% end %>
     </div>
   <% else %>
-    <div class="alert alert-info">
-      No feed items yet. Check back after the next data refresh.
+    <div class="panel empty">
+      <span class="empty-code">NO SIGNALS</span>
+      <span class="empty-body">Nothing fired in the last refresh. Check back after the next data import.</span>
     </div>
   <% end %>
 </div>

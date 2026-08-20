@@ -1,0 +1,77 @@
+<%# The calculator itself — fields, result and the three explanatory blank
+    states. Shared by the navbar modal and the standalone /float-calculator page
+    so both stay in step with float_calculator_controller.js. %>
+  <div class="modal-body">
+    <span class="formula">Formula: <code>(item &minus; min) / (max &minus; min)</code></span>
+
+    <div class="field">
+      <div class="calc-field-head">
+        <span class="calc-field-label">Min Float</span>
+        <span class="field-hint mono">skin floor</span>
+      </div>
+      <input type="number" class="calc-input" step="0.0001" min="0" max="1" placeholder="e.g. 0.25"
+             data-float-calculator-target="minFloat" data-action="input->float-calculator#calculate">
+    </div>
+
+    <div class="field">
+      <div class="calc-field-head">
+        <span class="calc-field-label">Max Float</span>
+        <span class="field-hint mono">skin ceiling</span>
+      </div>
+      <input type="number" class="calc-input" step="0.0001" min="0" max="1" placeholder="e.g. 0.75"
+             data-float-calculator-target="maxFloat" data-action="input->float-calculator#calculate">
+    </div>
+
+    <div class="field">
+      <div class="calc-field-head">
+        <span class="calc-field-label">Item Float</span>
+        <span class="field-hint mono">the listing</span>
+      </div>
+      <input type="number" class="calc-input" step="0.0001" min="0" max="1" placeholder="e.g. 0.26"
+             data-float-calculator-target="currentFloat" data-action="input->float-calculator#calculate">
+    </div>
+  </div>
+
+  <div class="calc-result" data-float-calculator-target="result" hidden>
+    <div class="calc-head">
+      <div class="field">
+        <span class="eyebrow">Adjusted float</span>
+        <span class="calc-value" data-float-calculator-target="adjValue"></span>
+      </div>
+      <span class="calc-interp" data-float-calculator-target="interpretation"></span>
+    </div>
+
+    <%# Wear bands sized to their real widths, with a marker at the value. %>
+    <div class="field">
+      <div class="calc-strip-wrap">
+        <div class="calc-strip" data-float-calculator-target="strip">
+          <div class="band band-fn" style="flex: 140"></div>
+          <div class="band band-mw" style="flex: 160"></div>
+          <div class="band band-ft" style="flex: 460"></div>
+          <div class="band band-ww" style="flex: 140"></div>
+          <div class="band band-bs" style="flex: 100"></div>
+        </div>
+        <div class="calc-marker" data-float-calculator-target="marker"></div>
+      </div>
+      <div class="calc-strip-labels" data-float-calculator-target="stripLabels">
+        <span data-band="fn" style="flex: 140">FN</span>
+        <span data-band="mw" style="flex: 160">MW</span>
+        <span data-band="ft" style="flex: 460">FT</span>
+        <span data-band="ww" style="flex: 140">WW</span>
+        <span data-band="bs" style="flex: 100">BS</span>
+      </div>
+    </div>
+
+    <div class="calc-terms">
+      <span class="kv-chip"><span class="k">item &minus; min</span><span class="v" data-float-calculator-target="termNumerator"></span></span>
+      <span class="kv-chip"><span class="k">max &minus; min</span><span class="v" data-float-calculator-target="termCap"></span></span>
+    </div>
+
+    <span class="calc-error-body">Bands read the <span style="color: var(--text2)">adjusted</span> float, so a skin whose range starts above 0 wears better than its raw value suggests.</span>
+  </div>
+
+  <%# Opens in the "waiting" state so the card is never blank before input. %>
+  <div class="calc-error" data-float-calculator-target="error">
+    <span class="calc-error-title" data-float-calculator-target="errorTitle">Waiting for input</span>
+    <span class="calc-error-body" data-float-calculator-target="errorBody">Enter a min float, a max float and the item's float to see its adjusted value.</span>
+  </div>

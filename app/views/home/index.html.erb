@@ -1,299 +1,501 @@
-<div class="container mt-4" data-controller="popover">
-  <h1 class="mb-4">Trending Skin Items</h1>
+<%
+  # Every Δ badge in the table is measured between these two snapshots, so the
+  # window is stated once, up front, rather than repeated per row.
+  window_from = params[:start_date].presence || @trending_items.map(&:prev_date).compact.min
+  window_to   = params[:end_date].presence || @trending_items.map(&:current_date).compact.max
+  window_days = (Date.parse(window_to.to_s) - Date.parse(window_from.to_s)).to_i rescue nil
 
-  <div class="card mb-4">
-    <div class="card-body">
-      <%= form_with url: root_path, method: :get, class: "row g-3" do |f| %>
-        <div class="col-md-3 position-relative" style="z-index: 2;" data-controller="autocomplete" data-autocomplete-url-value="<%= autocomplete_skin_items_path %>" data-action="click@document->autocomplete#closeOnClickOutside">
-          <%= f.label :name, "Item Name", class: "form-label" %>
-          <%= f.text_field :name, value: params[:name], class: "form-control", placeholder: "Search by name...", autocomplete: "off", data: { autocomplete_target: "input", action: "input->autocomplete#search" } %>
-          <div data-autocomplete-target="results" class="list-group position-absolute w-100 d-none shadow-sm" style="z-index: 1000; overflow-y: auto;"></div>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :category, "Category", class: "form-label" %>
-          <%= f.select :category, Skin::ITEM_TYPES, { include_blank: "All Categories", selected: params[:category] }, { class: "form-select" } %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :collection, "Collection", class: "form-label" %>
-          <%= f.select :collection, Skin.distinct.pluck(:collection_name).compact.sort, { include_blank: "All Collections", selected: params[:collection] }, { class: "form-select", multiple: true, size: 5 } %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :rarity, class: "form-label" %>
-          <%= f.select :rarity, rarity_filter_options, { include_blank: "All Rarities", selected: params[:rarity] }, { class: "form-select" } %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :wear, "Quality", class: "form-label" %>
-          <%= f.select :wear, SkinItem.wears.to_a, { include_blank: "All Qualities", selected: params[:wear] }, { class: "form-select" } %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :stattrak, "StatTrak™", class: "form-label" %>
-          <%= f.select :stattrak, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:stattrak] || 'false' }, { class: "form-select" } %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :souvenir, "Souvenir", class: "form-label" %>
-          <%= f.select :souvenir, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:souvenir] || 'false' }, { class: "form-select" } %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :in_game_store, "Available In-Store", class: "form-label" %>
-          <%= f.select :in_game_store, [["Any", ""], ["Yes", "true"], ["No", "false"]], { selected: params[:in_game_store] }, { class: "form-select" } %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :sort_by, "Sort By", class: "form-label" %>
-          <%= f.select :sort_by, [
-            ["Trending Score", ""],
-            ["Top Signals (Pump Alert)", "top_signals"],
-            ["Price: Low to High", "price_asc"],
-            ["Price: High to Low", "price_desc"],
-            ["Volume/Price Divergence", "volume_price_divergence"],
-            ["Supply Dry Up (Turnover)", "supply_dry_up"],
-            ["Buy Order Increase", "buy_order_increase"],
-            ["No Sorting", "none"]
-          ], { selected: params[:sort_by] }, { class: "form-select" } %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :min_price, "Min Price", class: "form-label" %>
-          <%= f.number_field :min_price, value: params[:min_price], class: "form-control", step: 0.01 %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :max_price, "Max Price", class: "form-label" %>
-          <%= f.number_field :max_price, value: params[:max_price], class: "form-control", step: 0.01 %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :min_offervolume, "Min Offer Vol", class: "form-label" %>
-          <%= f.number_field :min_offervolume, value: params[:min_offervolume], class: "form-control" %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :max_offervolume, "Max Offer Vol", class: "form-label" %>
-          <%= f.number_field :max_offervolume, value: params[:max_offervolume], class: "form-control" %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :min_buyordervolume, "Min Buy Order Vol", class: "form-label" %>
-          <%= f.number_field :min_buyordervolume, value: params[:min_buyordervolume], class: "form-control" %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :max_buyordervolume, "Max Buy Order Vol", class: "form-label" %>
-          <%= f.number_field :max_buyordervolume, value: params[:max_buyordervolume], class: "form-control" %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :min_buy_wall_ratio, "Min Buy Wall (x)", class: "form-label" %>
-          <%= f.number_field :min_buy_wall_ratio, value: params[:min_buy_wall_ratio], class: "form-control", step: 0.1 %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :min_turnover, "Min Turnover (%)", class: "form-label" %>
-          <%= f.number_field :min_turnover, value: params[:min_turnover], class: "form-control", step: 0.1 %>
-        </div>
-        <div class="col-md-3 d-flex align-items-end">
-          <div class="form-check">
-            <%= f.check_box :starred_only, { checked: params[:starred_only] == "1", class: "form-check-input" }, "1", "0" %>
-            <%= f.label :starred_only, "Starred only", class: "form-check-label" %>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :start_date, "Start Date (Compare From)", class: "form-label" %>
-          <%= f.date_field :start_date, value: params[:start_date], class: "form-control" %>
-        </div>
-        <div class="col-md-3">
-          <%= f.label :end_date, "End Date (Compare To)", class: "form-label" %>
-          <%= f.date_field :end_date, value: params[:end_date], class: "form-control" %>
-        </div>
-        <div class="col-12">
-          <%= f.submit "Filter", class: "btn btn-primary" %>
-          <%= link_to "Reset", root_path, class: "btn btn-secondary" %>
-          <%= link_to "Export CSV", root_path(request.query_parameters.merge(format: :csv)), class: "btn btn-success float-end me-2", data: { turbo: false } %>
-          <%= link_to "Export JSON", root_path(request.query_parameters.merge(format: :json)), class: "btn btn-outline-success float-end", data: { turbo: false } %>
-        </div>
+  # Shortcuts over the same start_date / end_date the query already reads.
+  window_anchor = (Date.parse(window_to.to_s) rescue Date.current)
+  span_url = ->(days) do
+    root_path(request.query_parameters.merge(
+      start_date: (window_anchor - days).to_s, end_date: window_anchor.to_s
+    ).except("page"))
+  end
+
+  wall_ratio = ->(item) do
+    return nil if item.current_buyordervolume.blank? || item.current_offervolume.to_i <= 0
+
+    item.current_buyordervolume.to_f / item.current_offervolume.to_f
+  end
+
+  pump_alerts = @trending_items.count { |item| wall_ratio.call(item).to_f >= 50 }
+
+  # Chips clear by dropping their own key from the current query string.
+  chip_url = ->(key) { root_path(request.query_parameters.except(key.to_s, "page")) }
+
+  active_chips = []
+  active_chips << ["name", params[:name], :name] if params[:name].present?
+  active_chips << ["category", params[:category], :category] if params[:category].present?
+  active_chips << ["rarity", params[:rarity], :rarity] if params[:rarity].present?
+  active_chips << ["wear", params[:wear], :wear] if params[:wear].present?
+  Array(params[:collection]).reject(&:blank?).each { |c| active_chips << ["collection", c, :collection] }
+  active_chips << ["StatTrak™", params[:stattrak] == "true" ? "yes" : "no", :stattrak] if params[:stattrak].in?(%w[true false])
+  active_chips << ["Souvenir", params[:souvenir] == "true" ? "yes" : "no", :souvenir] if params[:souvenir].in?(%w[true false])
+  active_chips << ["In-store", params[:in_game_store] == "true" ? "yes" : "no", :in_game_store] if params[:in_game_store].in?(%w[true false])
+  active_chips << ["price ≥", number_to_currency(params[:min_price]), :min_price] if params[:min_price].present?
+  active_chips << ["price ≤", number_to_currency(params[:max_price]), :max_price] if params[:max_price].present?
+  active_chips << ["offer vol ≥", params[:min_offervolume], :min_offervolume] if params[:min_offervolume].present?
+  active_chips << ["offer vol ≤", params[:max_offervolume], :max_offervolume] if params[:max_offervolume].present?
+  active_chips << ["buy orders ≥", params[:min_buyordervolume], :min_buyordervolume] if params[:min_buyordervolume].present?
+  active_chips << ["buy orders ≤", params[:max_buyordervolume], :max_buyordervolume] if params[:max_buyordervolume].present?
+  active_chips << ["buy wall ≥", "#{params[:min_buy_wall_ratio]}x", :min_buy_wall_ratio] if params[:min_buy_wall_ratio].present?
+  active_chips << ["turnover ≥", "#{params[:min_turnover]}%", :min_turnover] if params[:min_turnover].present?
+  active_chips << ["", "Starred only", :starred_only] if params[:starred_only] == "1"
+
+  identity_count = [params[:category], params[:rarity], params[:wear], params[:stattrak].presence,
+                    params[:souvenir].presence, params[:in_game_store].presence,
+                    Array(params[:collection]).reject(&:blank?).presence].compact.size
+  market_count = %i[min_price max_price min_offervolume max_offervolume
+                    min_buyordervolume max_buyordervolume].count { |k| params[k].present? }
+  signals_count = %i[min_buy_wall_ratio min_turnover].count { |k| params[k].present? } +
+                  (params[:starred_only] == "1" ? 1 : 0)
+
+  # Column headers reuse the sort values the query already understands.
+  sort_link = ->(key) { root_path(request.query_parameters.merge(sort_by: key).except("page")) }
+  # The headers and the sort select are one state: a header link writes the same
+  # sort_by the select reads back, and the active column is marked here.
+  sorted = ->(*keys) { "sorted" if keys.include?(params[:sort_by]) }
+  starred_only = params[:starred_only] == "1"
+  starred_toggle_url = starred_only ? chip_url.call(:starred_only) : root_path(request.query_parameters.merge(starred_only: "1").except("page"))
+  price_sort = params[:sort_by] == "price_desc" ? "price_asc" : "price_desc"
+%>
+
+<div data-controller="filter-groups">
+  <div class="window-bar">
+    <div class="field">
+      <span class="eyebrow">Comparison window</span>
+      <div class="window-dates">
+        <% if window_from.present? && window_to.present? %>
+          <span><%= window_from %></span>
+          <span class="window-arrow">&rarr;</span>
+          <span><%= window_to %></span>
+          <% if window_days %>
+            <span class="window-span"><%= pluralize(window_days, "day") %> window</span>
+          <% end %>
+        <% else %>
+          <span class="muted-dash">no snapshots in range</span>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="span-picker">
+      <% [1, 7, 14, 30].each do |days| %>
+        <%= link_to "#{days}D", span_url.call(days),
+              class: "span-opt #{"on" if window_days == days}" %>
       <% end %>
+    </div>
+
+    <div class="nav-spacer"></div>
+
+    <div class="window-stats">
+      <div class="window-stat">
+        <span class="eyebrow">Matches</span>
+        <span class="window-stat-value"><%= number_with_delimiter(@trending_items.total_count) %></span>
+      </div>
+      <div class="window-stat">
+        <span class="eyebrow">
+          Pump alerts
+          <%= info_dot("Pump alerts", "Rows on this page whose buy wall is at or above 50x — someone has cornered supply.") %>
+        </span>
+        <span class="window-stat-value bad"><%= pump_alerts %></span>
+      </div>
+      <div class="window-stat">
+        <span class="eyebrow">Starred</span>
+        <span class="window-stat-value warn"><%= @starred_ids.size %></span>
+      </div>
     </div>
   </div>
 
-  <% if @trending_items.any? %>
-    <div class="d-flex justify-content-center">
-      <%= paginate @trending_items %>
+  <%= form_with url: root_path, method: :get, class: "filter-bar" do |f| %>
+    <%= hidden_field_tag :starred_only, "1" if starred_only %>
+
+    <div class="filter-row">
+      <div class="search-box" data-controller="autocomplete"
+           data-autocomplete-url-value="<%= autocomplete_skin_items_path %>"
+           data-action="click@document->autocomplete#closeOnClickOutside">
+        <span class="slash">/</span>
+        <%= f.text_field :name, value: params[:name], placeholder: "Filter by item name…", autocomplete: "off",
+              data: { autocomplete_target: "input", action: "input->autocomplete#search" } %>
+        <div data-autocomplete-target="results" class="ac-results d-none"></div>
+      </div>
+
+      <button type="button" class="group-btn" data-group="identity" aria-expanded="false"
+              data-filter-groups-target="button" data-action="filter-groups#toggle">
+        Identity <span class="count"><%= identity_count.zero? ? "—" : identity_count %></span><span class="caret"></span>
+      </button>
+      <button type="button" class="group-btn" data-group="market" aria-expanded="false"
+              data-filter-groups-target="button" data-action="filter-groups#toggle">
+        Market <span class="count"><%= market_count.zero? ? "—" : market_count %></span><span class="caret"></span>
+      </button>
+      <button type="button" class="group-btn" data-group="signals" aria-expanded="false"
+              data-filter-groups-target="button" data-action="filter-groups#toggle">
+        Signals <span class="count"><%= signals_count.zero? ? "—" : signals_count %></span><span class="caret"></span>
+      </button>
+      <button type="button" class="group-btn" data-group="window" aria-expanded="false"
+              data-filter-groups-target="button" data-action="filter-groups#toggle">
+        Window &amp; output<span class="caret"></span>
+      </button>
+
+      <%= link_to starred_toggle_url, class: "star-toggle #{"on" if starred_only}" do %>
+        &#9733; Starred only
+      <% end %>
+
+      <div class="nav-spacer"></div>
+
+      <div class="sort-box">
+        <span class="sort-label">SORT</span>
+        <%= f.select :sort_by, [
+          ["Trending Score", ""],
+          ["Top Signals (Pump Alert)", "top_signals"],
+          ["Price: Low to High", "price_asc"],
+          ["Price: High to Low", "price_desc"],
+          ["Volume/Price Divergence", "volume_price_divergence"],
+          ["Supply Dry Up (Turnover)", "supply_dry_up"],
+          ["Buy Order Increase", "buy_order_increase"],
+          ["No Sorting", "none"]
+        ], { selected: params[:sort_by] }, {} %>
+      </div>
+
+      <%= button_tag "Filter", type: :submit, name: nil, class: "btn-primary-brand" %>
+      <%= link_to "Reset", root_path, class: "btn-outline" %>
+
+      <div class="export-group">
+        <%= link_to "CSV", root_path(request.query_parameters.merge(format: :csv)), data: { turbo: false } %>
+        <span class="sep">|</span>
+        <%= link_to "JSON", root_path(request.query_parameters.merge(format: :json)), data: { turbo: false } %>
+      </div>
     </div>
-    <div class="table-responsive">
-      <table class="table table-striped table-hover align-middle">
-        <thead class="table-dark">
-          <tr>
-            <th><i class="bi bi-star-fill"></i></th>
-            <th>Image</th>
-            <th>Name</th>
-            <th>Collection</th>
-            <th>Rarity</th>
-            <th>
-              Latest Price
-              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Price Change" data-bs-content="Shows the price change between the two comparison dates."></i>
-            </th>
-            <th>
-              Sold / Offer Vol (Turnover)
-              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Turnover Rate (Supply Squeeze)" data-bs-content="Formula: Sold (24h) / Offer Vol. <br>Measures how fast supply is being eaten. <br><b>0-5% (Dead):</b> Too much supply. <br><b>5-15% (Organic):</b> Healthy demand. <br><b>20-50% (Squeeze):</b> High alert! Supply vanishing. <br><b>>50% (Moon):</b> Market broken, extreme volatility."></i>
-            </th>
-            <th>
-              Buy Order Vol
-              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Buy Order Volume" data-bs-content="The total number of active buy orders. <br>The badge shows the change over the selected period. <br>Rising buy orders with flat price can indicate accumulation."></i>
-            </th>
-            <th>
-              Buy Wall
-              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Buy Wall Ratio" data-bs-content="Formula: Buy Orders / Offer Vol. <br><b>5x-10x:</b> Normal support. <br><b>>50x (PUMP ALERT):</b> Someone has cornered the market. The massive buy wall prevents the price from dropping."></i>
-            </th>
-            <th>Float Range</th>
-            <th>
-              Total Quantity
-              <i class="bi bi-info-circle" data-bs-toggle="popover" data-bs-trigger="hover" title="Total Quantity" data-bs-content="Total quantity available across all markets."></i>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @trending_items.each do |item| %>
-            <tr>
-              <td>
-                <%= render "stars/star", skin_item_id: item.id, starred: @starred_ids.include?(item.id) %>
-              </td>
-              <td>
-                <% if item.image.present? %>
-                  <%= image_tag item.image, alt: item.name, class: "rounded", style: "width: 48px; height: 48px; object-fit: cover;", loading: "lazy" %>
-                <% else %>
-                  <div class="d-flex align-items-center justify-content-center bg-light rounded text-muted" style="width: 48px; height: 48px;">
-                    <i class="bi bi-image"></i>
-                  </div>
-                <% end %>
-              </td>
-              <td>
-                <%= link_to skin_item_path(item), class: "me-2", target: "_blank" do %>
-                  <i class="bi bi-graph-up"></i>
-                <% end %>
-                <%= link_to item.name, "https://steamcommunity.com/market/listings/730/#{ERB::Util.url_encode(item.name)}", target: "_blank", class: "text-decoration-none fw-bold", style: "color: #{rarity_color(item.skin_rarity || item.rarity)};" %>
-                <% if item.prev_date.present? %>
-                  <br>
-                  <small class="text-muted">
-                    Comparing <%= item.prev_date %> vs <%= item.current_date %>
-                  </small>
-                <% elsif item.current_date.present? %>
-                  <br>
-                  <small class="text-muted">
-                    Data for <%= item.current_date %>
-                  </small>
-                <% end %>
-              </td>
-              <td>
-                <%
-                  collection_name = item.collection_name
-                  if collection_name.blank? && item.skin_crates.present?
-                    crates = JSON.parse(item.skin_crates) rescue []
-                    collection_name = crates.first
-                  end
-                %>
-                <% if collection_name.present? %>
-                  <%= collection_name %>
-                <% else %>
-                  <span class="text-muted">-</span>
-                <% end %>
-              </td>
-              <td>
-                <% rarity = item.skin_rarity || item.rarity %>
-                <% if rarity.present? %>
-                  <span class="badge" style="background-color: <%= rarity_color(rarity) %>; color: white;"><%= rarity %></span>
-                <% else %>
-                  <span class="text-muted">-</span>
-                <% end %>
-              </td>
-              <td>
-                <%= number_to_currency(item.latest_steam_price) %>
-                <% if item.current_price.present? && item.prev_price.present? %>
-                  <% price_diff = item.current_price - item.prev_price %>
-                  <% if price_diff > 0 %>
-                    <span class="badge bg-success"><i class="bi bi-arrow-up"></i> +<%= number_to_currency(price_diff) %></span>
-                  <% elsif price_diff < 0 %>
-                    <span class="badge bg-danger"><i class="bi bi-arrow-down"></i> <%= number_to_currency(price_diff) %></span>
-                  <% else %>
-                    <span class="badge bg-secondary">=</span>
-                  <% end %>
-                <% end %>
-              </td>
-              <td>
-                <% if item.current_soldtoday.present? %>
-                  <%= item.current_soldtoday %> / <%= item.current_offervolume %>
-                  <% if item.current_offervolume.to_i > 0 %>
-                    <% turnover_ratio = item.current_soldtoday.to_f / item.current_offervolume.to_f %>
-                    <span class="badge bg-info text-dark"><%= number_to_percentage(turnover_ratio * 100, precision: 1) %></span>
-                  <% end %>
-                  <% if item.prev_soldtoday.present? %>
-                    <br>
-                    <small class="text-muted">
-                      <% sold_diff = item.current_soldtoday.to_i - item.prev_soldtoday.to_i %>
-                      <% if sold_diff > 0 %>
-                        <span class="badge bg-danger">Sold: +<%= sold_diff %></span>
-                      <% elsif sold_diff < 0 %>
-                        <span class="badge bg-success">Sold: <%= sold_diff %></span>
-                      <% end %>
 
-                      <% offer_diff = item.current_offervolume.to_i - item.prev_offervolume.to_i %>
-                      <% if offer_diff > 0 %>
-                        <span class="badge bg-success">Offer: +<%= offer_diff %></span>
-                      <% elsif offer_diff < 0 %>
-                        <span class="badge bg-danger">Offer: <%= offer_diff %></span>
-                      <% end %>
-                    </small>
-                  <% end %>
-                <% else %>
-                  <span class="text-muted">-</span>
-                <% end %>
-              </td>
-              <td>
-                <% if item.current_buyordervolume.present? %>
-                  <%= item.current_buyordervolume %>
-                  <% if item.prev_buyordervolume.present? %>
-                    <% diff = item.current_buyordervolume.to_i - item.prev_buyordervolume.to_i %>
-                    <% if item.prev_buyordervolume.to_i > 0 %>
-                      <% percent_change = (diff.to_f / item.prev_buyordervolume.to_f) * 100 %>
-                    <% else %>
-                      <% percent_change = 0 %>
-                    <% end %>
+    <div class="filter-panel" data-filter-groups-target="panel" hidden>
+      <div class="filter-group g-identity" data-group="identity" data-filter-groups-target="group" hidden>
+        <div class="filter-group-head">
+          <span class="filter-group-name">Identity</span>
+          <span class="filter-group-count">7 FIELDS</span>
+        </div>
 
-                    <% if diff > 0 %>
-                      <span class="badge bg-danger">
-                        <i class="bi bi-arrow-up"></i> +<%= diff %> (<%= number_to_percentage(percent_change, precision: 1) %>)
-                      </span>
-                    <% elsif diff < 0 %>
-                      <span class="badge bg-success">
-                        <i class="bi bi-arrow-down"></i> <%= diff %> (<%= number_to_percentage(percent_change, precision: 1) %>)
-                      </span>
-                    <% else %>
-                      <span class="badge bg-secondary">=</span>
-                    <% end %>
-                  <% end %>
-                <% else %>
-                  <span class="text-muted">-</span>
+        <div class="field-pair">
+          <label class="field">
+            <span class="field-label">Category</span>
+            <%= f.select :category, Skin::ITEM_TYPES, { include_blank: "Any", selected: params[:category] }, { class: "ctl" } %>
+          </label>
+          <label class="field">
+            <span class="field-label">Wear</span>
+            <%= f.select :wear, SkinItem.wears.to_a, { include_blank: "Any", selected: params[:wear] }, { class: "ctl" } %>
+          </label>
+          <label class="field field-span2">
+            <span class="field-label">Collection</span>
+            <%= f.select :collection, Skin.distinct.pluck(:collection_name).compact.sort,
+                  { selected: Array(params[:collection]) },
+                  { class: "ctl", multiple: true, size: 4, style: "height: auto" } %>
+          </label>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Rarity</span>
+          <%# One rarity at a time, as the query takes: the chips are a styled single select. %>
+          <%= f.hidden_field :rarity, value: params[:rarity], data: { rarity_target: "input" } %>
+          <div class="rarity-chips" data-controller="rarity" data-rarity-selected-value="<%= params[:rarity] %>">
+            <% rarity_filter_options.each do |label, value| %>
+              <button type="button"
+                      class="rarity-chip r-<%= rarity_slug(label) %> <%= "on" if params[:rarity].to_s == value.to_s %>"
+                      data-value="<%= value %>" data-action="rarity#pick">
+                <%= label.to_s.sub(" Grade", "").upcase %>
+              </button>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="field" style="gap: 7px; padding-top: 2px">
+          <% [["stattrak", "StatTrak™"], ["souvenir", "Souvenir"], ["in_game_store", "In-game store"]].each do |key, label| %>
+            <% current = params[key].to_s %>
+            <div class="tri">
+              <span class="tri-label"><%= label %></span>
+              <div class="tri-opts">
+                <% [["", "ANY"], ["true", "YES"], ["false", "NO"]].each do |value, text| %>
+                  <label class="tri-opt">
+                    <%= radio_button_tag key, value, current == value, class: "visually-hidden" %><%= text %>
+                  </label>
                 <% end %>
-              </td>
-              <td>
-                <% if item.current_buyordervolume.present? && item.current_offervolume.to_i > 0 %>
-                  <% buy_wall_ratio = item.current_buyordervolume.to_f / item.current_offervolume.to_f %>
-                  <span class="<%= 'text-danger fw-bold' if buy_wall_ratio >= 50 %>">
-                    <%= number_with_precision(buy_wall_ratio, precision: 2) %>x
-                  </span>
-                <% else %>
-                  <span class="text-muted">-</span>
-                <% end %>
-              </td>
-              <td><%= float_range_with_wear_chance(item) %></td>
-              <td>
-                <% if item.current_all_markets_quantity.present? %>
-                  <%= item.current_all_markets_quantity %>
-                <% else %>
-                  <span class="text-muted">-</span>
-                <% end %>
-              </td>
-            </tr>
+              </div>
+            </div>
           <% end %>
-        </tbody>
-      </table>
+        </div>
+      </div>
+
+      <div class="filter-group g-market" data-group="market" data-filter-groups-target="group" hidden>
+        <div class="filter-group-head">
+          <span class="filter-group-name">Market</span>
+          <span class="filter-group-count">6 FIELDS</span>
+        </div>
+        <div class="field-pair">
+          <label class="field">
+            <span class="field-label">Min price</span>
+            <%= f.number_field :min_price, value: params[:min_price], step: 0.01, placeholder: "0.00", class: "ctl ctl-num" %>
+          </label>
+          <label class="field">
+            <span class="field-label">Max price</span>
+            <%= f.number_field :max_price, value: params[:max_price], step: 0.01, placeholder: "—", class: "ctl ctl-num" %>
+          </label>
+          <label class="field">
+            <span class="field-label">Min offer vol</span>
+            <%= f.number_field :min_offervolume, value: params[:min_offervolume], placeholder: "0", class: "ctl ctl-num" %>
+          </label>
+          <label class="field">
+            <span class="field-label">Max offer vol</span>
+            <%= f.number_field :max_offervolume, value: params[:max_offervolume], placeholder: "—", class: "ctl ctl-num" %>
+          </label>
+          <label class="field">
+            <span class="field-label">Min buy orders</span>
+            <%= f.number_field :min_buyordervolume, value: params[:min_buyordervolume], placeholder: "0", class: "ctl ctl-num" %>
+          </label>
+          <label class="field">
+            <span class="field-label">Max buy orders</span>
+            <%= f.number_field :max_buyordervolume, value: params[:max_buyordervolume], placeholder: "—", class: "ctl ctl-num" %>
+          </label>
+        </div>
+      </div>
+
+      <div class="filter-group g-signals" data-group="signals" data-filter-groups-target="group" hidden>
+        <div class="filter-group-head">
+          <span class="filter-group-name">Signals</span>
+          <span class="filter-group-count">3 FIELDS</span>
+        </div>
+
+        <label class="field">
+          <span class="field-label">Min buy wall (x)</span>
+          <%= f.number_field :min_buy_wall_ratio, value: params[:min_buy_wall_ratio], step: 0.1, placeholder: "off", class: "ctl ctl-num" %>
+          <span class="zone-legend-labels"><span>0x</span><span class="mid">50x PUMP ALERT</span></span>
+        </label>
+
+        <label class="field">
+          <span class="field-label">Min turnover (%)</span>
+          <%= f.number_field :min_turnover, value: params[:min_turnover], step: 0.1, placeholder: "off", class: "ctl ctl-num" %>
+          <div class="zone-legend">
+            <div class="seg-dead"></div><div class="seg-organic"></div><div class="seg-squeeze"></div><div class="seg-moon"></div>
+          </div>
+          <span class="zone-legend-labels">
+            <span>0%</span><span class="mid">DEAD · ORGANIC · SQUEEZE · MOON</span><span>100%</span>
+          </span>
+        </label>
+
+        <%= link_to starred_toggle_url, class: "star-toggle #{"on" if starred_only}", style: "align-self: flex-start" do %>
+          &#9733; Starred only
+        <% end %>
+      </div>
+
+      <div class="filter-group g-window" data-group="window" data-filter-groups-target="group" hidden>
+        <div class="filter-group-head">
+          <span class="filter-group-name">Window &amp; output</span>
+          <span class="filter-group-count">2 FIELDS</span>
+        </div>
+        <div class="field-pair">
+          <label class="field">
+            <span class="field-label">Start date</span>
+            <%= f.date_field :start_date, value: params[:start_date], class: "ctl ctl-num" %>
+          </label>
+          <label class="field">
+            <span class="field-label">End date</span>
+            <%= f.date_field :end_date, value: params[:end_date], class: "ctl ctl-num" %>
+          </label>
+        </div>
+        <span class="field-hint">Every Δ badge in the table is measured between these two snapshots.</span>
+
+        <div class="nav-spacer"></div>
+
+        <div class="filter-actions">
+          <%= button_tag "Filter", type: :submit, name: nil, class: "btn-primary-brand" %>
+          <%= link_to "Reset", root_path, class: "btn-outline" %>
+        </div>
+        <div class="export-actions">
+          <%= link_to "EXPORT CSV", root_path(request.query_parameters.merge(format: :csv)), data: { turbo: false } %>
+          <%= link_to "EXPORT JSON", root_path(request.query_parameters.merge(format: :json)), data: { turbo: false } %>
+        </div>
+      </div>
     </div>
-    <div class="d-flex justify-content-center">
-      <%= paginate @trending_items %>
-    </div>
-  <% else %>
-    <div class="alert alert-info">
-      No trending items found matching your criteria.
-    </div>
+
+    <% if active_chips.any? %>
+      <div class="active-chips">
+        <span class="active-chips-label">ACTIVE</span>
+        <% active_chips.each do |label, value, key| %>
+          <%= link_to chip_url.call(key), class: "chip" do %>
+            <% if label.present? %><span class="chip-key"><%= label %></span><% end %><%= value %><span class="chip-x">&times;</span>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
   <% end %>
+
+  <div class="results-wrap">
+    <div class="results">
+      <div class="srow shead">
+        <div></div>
+        <div></div>
+        <div>Item</div>
+        <div>Collection</div>
+        <div>Rarity</div>
+        <div class="num <%= sorted.call("price_asc", "price_desc") %>">
+          <%= link_to sort_link.call(price_sort) do %>
+            Price Δ<span class="sort-caret"><%= params[:sort_by] == "price_asc" ? "▴" : "▾" %></span>
+          <% end %>
+          <%= info_dot("Price Δ", "Latest Steam price, with the change across the comparison window. Up is good here.") %>
+        </div>
+        <div class="num <%= sorted.call("supply_dry_up") %>">
+          <%= link_to sort_link.call("supply_dry_up") do %>
+            Sold / Offer<span class="sort-caret">▾</span>
+          <% end %>
+          <%= info_dot("Turnover", "Sold today / offer volume. 0–5% Dead · 5–15% Organic · 20–50% Squeeze · >50% Moon. Rising sold volume shows red — supply is leaving cheap.") %>
+        </div>
+        <div class="num <%= sorted.call("buy_order_increase") %>">
+          <%= link_to sort_link.call("buy_order_increase") do %>
+            Buy Orders<span class="sort-caret">▾</span>
+          <% end %>
+          <%= info_dot("Buy orders", "Open buy orders (demand). A rise is red: accumulation just got more expensive.") %>
+        </div>
+        <div class="num">
+          Buy Wall
+          <%= info_dot("Buy wall", "Buy orders / offer volume. At 50x or more it is a PUMP ALERT — someone has cornered supply.") %>
+        </div>
+        <div class="num">Float</div>
+        <div class="num">
+          Qty
+          <%= info_dot("Total quantity", "Total quantity available across all tracked markets.") %>
+        </div>
+      </div>
+
+      <% @trending_items.each do |item| %>
+        <%
+          starred = @starred_ids.include?(item.id)
+          rarity = item.skin_rarity || item.rarity
+          collection = item_collection_name(item)
+          sold = item.current_soldtoday
+          offer = item.current_offervolume
+          turnover = offer.to_i > 0 ? (sold.to_f / offer.to_f) * 100 : nil
+          zone_slug, zone_label = turnover ? turnover_zone(turnover) : [nil, nil]
+          price_diff = item.current_price.present? && item.prev_price.present? ? item.current_price - item.prev_price : nil
+          buy_diff = item.current_buyordervolume.present? && item.prev_buyordervolume.present? ?
+                       item.current_buyordervolume.to_i - item.prev_buyordervolume.to_i : nil
+          buy_pct = buy_diff && item.prev_buyordervolume.to_i > 0 ?
+                      (buy_diff.to_f / item.prev_buyordervolume.to_f) * 100 : nil
+          wall = wall_ratio.call(item)
+        %>
+        <div class="srow sbody <%= "starred" if starred %>">
+          <div class="scell-star">
+            <%= render "stars/star", skin_item_id: item.id, starred: starred %>
+          </div>
+
+          <div class="scell-thumb">
+            <%= link_to skin_item_path(item), class: "thumb", title: item.name do %>
+              <% if item.image.present? %>
+                <%= image_tag item.image, alt: item.name, loading: "lazy" %>
+              <% else %>
+                <%= item_abbreviation(item.name) %>
+              <% end %>
+            <% end %>
+          </div>
+
+          <div class="scell-name">
+            <div class="scell-name-row">
+              <%= link_to item.name,
+                    "https://steamcommunity.com/market/listings/730/#{ERB::Util.url_encode(item.name)}",
+                    target: "_blank", rel: "noopener",
+                    class: "item-name rar r-#{rarity_slug(rarity)}" %>
+              <% if item.stattrak? %><span class="st-tag">ST&trade;</span><% end %>
+              <% if item.souvenir? %><span class="sv-tag">SV</span><% end %>
+            </div>
+            <span class="scell-sub">
+              <%= item.wear || "—" %>
+              <% if item.current_date.present? %> · <%= item.current_date %><% end %>
+            </span>
+          </div>
+
+          <div class="scell-collection"><%= collection.presence || tag.span("—", class: "muted-dash") %></div>
+
+          <div>
+            <% if rarity.present? %>
+              <span class="rar-tag r-<%= rarity_slug(rarity) %>"><%= rarity.to_s.sub(" Grade", "").upcase %></span>
+            <% else %>
+              <span class="muted-dash">—</span>
+            <% end %>
+          </div>
+
+          <div class="scell-stack">
+            <span class="price-value"><%= number_to_currency(item.latest_steam_price) %></span>
+            <% if price_diff %>
+              <span class="delta <%= delta_class(price_diff) %>"><%= signed_currency(price_diff) %></span>
+            <% end %>
+          </div>
+
+          <div class="scell-turnover">
+            <% if sold.present? %>
+              <div class="turnover-line">
+                <span class="sold <%= "hot" if turnover.to_f > 15 %>"><%= number_with_delimiter(sold) %></span>
+                <span class="slash">/</span>
+                <span class="offer"><%= number_with_delimiter(offer) %></span>
+                <% if turnover %>
+                  <span class="pct zone-text-<%= zone_slug %>" title="<%= zone_label %>"><%= number_with_precision(turnover, precision: 1) %>%</span>
+                <% end %>
+              </div>
+              <% if turnover %>
+                <div class="turnover-track">
+                  <div class="turnover-fill zone-fill-<%= zone_slug %>" style="width: <%= [turnover * 2, 100].min.round(1) %>%"></div>
+                </div>
+              <% end %>
+            <% else %>
+              <span class="muted-dash">—</span>
+            <% end %>
+          </div>
+
+          <div class="scell-stack">
+            <% if item.current_buyordervolume.present? %>
+              <span class="buyvol-value"><%= number_with_delimiter(item.current_buyordervolume) %></span>
+              <% if buy_diff %>
+                <span class="delta <%= delta_class(buy_diff, polarity: :down_is_good) %>">
+                  <%= signed_number(buy_diff) %><%= " (#{signed_percent(buy_pct)})" if buy_pct %>
+                </span>
+              <% end %>
+            <% else %>
+              <span class="muted-dash">—</span>
+            <% end %>
+          </div>
+
+          <div class="scell-wall">
+            <% if wall %>
+              <span class="wall-value <%= "pump" if wall >= 50 %><%= "warn" if wall >= 20 && wall < 50 %>">
+                <%= number_with_precision(wall, precision: 2) %>x
+              </span>
+            <% else %>
+              <span class="muted-dash">—</span>
+            <% end %>
+          </div>
+
+          <div class="scell-float"><%= float_range_with_wear_chance(item) %></div>
+
+          <div class="scell-qty">
+            <%= item.current_all_markets_quantity.present? ? number_with_delimiter(item.current_all_markets_quantity) : tag.span("—", class: "muted-dash") %>
+          </div>
+        </div>
+      <% end %>
+
+      <% if @trending_items.empty? %>
+        <div class="empty">
+          <span class="empty-code">NO MATCHES</span>
+          <span class="empty-body">No tracked item satisfies all active filters in this window.</span>
+          <%= link_to "Clear filters", root_path, class: "btn-outline", style: "margin-top: 6px" %>
+        </div>
+      <% end %>
+
+      <div class="pager-bar results-footer">
+        <span class="pager-label">
+          <% if @trending_items.any? %>
+            Showing <%= @trending_items.offset_value + 1 %>–<%= @trending_items.offset_value + @trending_items.size %>
+            of <%= number_with_delimiter(@trending_items.total_count) %> · 100 per page
+          <% else %>
+            0 results
+          <% end %>
+        </span>
+        <%= paginate @trending_items %>
+      </div>
+    </div>
+  </div>
 </div>

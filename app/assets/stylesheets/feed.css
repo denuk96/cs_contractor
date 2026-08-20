@@ -1,0 +1,230 @@
+/*
+ * CS Contractor v2 — the signal feed.
+ *
+ * Everything that fired in the last refresh, one entry per item, grouped by the
+ * day it occurred so recency is legible at a glance.
+ */
+
+.feed-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.feed-count {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--t6);
+}
+
+.signal-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.signal-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 13px;
+  border: 1px solid var(--edge);
+  border-radius: 99px;
+  background: var(--input);
+  font-size: 12px;
+  color: var(--t3);
+  white-space: nowrap;
+}
+
+.signal-pill:hover { border-color: var(--edge3); color: var(--text); }
+
+.signal-pill .n {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--t7);
+}
+
+.signal-pill.on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--brand-on);
+  font-weight: 600;
+}
+
+.signal-pill.on .n { color: var(--brand-on); opacity: .7; }
+
+/* ------------------------------------------------------------- day groups -- */
+
+.feed-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feed-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.feed-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feed-divider-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .12em;
+  color: var(--t6);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.feed-divider-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.feed-divider-count {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--t8);
+  white-space: nowrap;
+}
+
+/* Cards stacked a hairline apart; the group takes the outer radius. */
+.feed-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.feed-card {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr) 176px;
+  gap: 14px;
+  align-items: center;
+  padding: 13px 15px;
+  background: var(--panel);
+  color: var(--text2);
+}
+
+.feed-card:hover { background: var(--hover); }
+
+.feed-thumb {
+  width: 74px;
+  height: 74px;
+  border-radius: 6px;
+}
+
+.feed-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.feed-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.feed-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.feed-wear {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--t7);
+}
+
+.feed-collection {
+  font-size: 11.5px;
+  color: var(--t6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.feed-headline {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--t3);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.feed-details {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.feed-spark {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.feed-spark-caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.feed-spark-name {
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--t7);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.feed-spark-value {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.feed-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--t7);
+  letter-spacing: .06em;
+}
+
+@media (max-width: 900px) {
+  .feed-card { grid-template-columns: 56px minmax(0, 1fr); }
+  .feed-spark { grid-column: 1 / -1; }
+  .feed-thumb { width: 56px; height: 56px; }
+}

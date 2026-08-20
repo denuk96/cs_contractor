@@ -1,118 +1,133 @@
-<div class="container mt-4">
-  <h2 class="mb-4">Tradeup Finder</h2>
+<div class="page">
+  <div class="section-head" style="flex-direction: column; align-items: flex-start; gap: 5px">
+    <span class="eyebrow eyebrow-brand">Contracts</span>
+    <h1>Tradeup Finder</h1>
+    <p class="prose" style="max-width: 78ch">
+      Sweeps every collection × wear × StatTrak combination for a ten-input contract whose
+      expected value clears its cost. Expected value is
+      <span class="mono" style="color: var(--text2)">Σ probability × price × fee multiplier</span>;
+      filler slots dilute each outcome and add a trash outcome of their own.
+    </p>
+  </div>
 
   <%= form_with url: tradeup_searches_path, method: :post, data: { turbo: false } do |f| %>
     <%= hidden_field_tag "tradeup_search[skip_if_price_missing]", "0" %>
     <%= hidden_field_tag "tradeup_search[consider_float]", "0" %>
 
-    <div class="card mb-4">
-      <div class="card-header fw-semibold">Parameters</div>
-      <div class="card-body">
-        <div class="row g-3">
+    <div class="params-card">
+      <div class="params-grid">
+        <label class="field">
+          <span class="field-label">Fee multiplier</span>
+          <%= f.number_field :price_fee_multiplier, value: @params[:price_fee_multiplier],
+                class: "ctl ctl-num", step: 0.01, min: 0, max: 1,
+                name: "tradeup_search[price_fee_multiplier]" %>
+          <span class="field-hint">e.g. 0.85 for Steam 15% fee</span>
+        </label>
 
-          <div class="col-md-2">
-            <label class="form-label">Fee multiplier</label>
-            <%= f.number_field :price_fee_multiplier, value: @params[:price_fee_multiplier],
-                  class: "form-control", step: 0.01, min: 0, max: 1,
-                  name: "tradeup_search[price_fee_multiplier]" %>
-            <div class="form-text">e.g. 0.85 for Steam 15% fee</div>
-          </div>
+        <label class="field">
+          <span class="field-label">Max cost ($)</span>
+          <%= f.number_field :max_cost, value: @params[:max_cost],
+                class: "ctl ctl-num", step: 1, min: 0,
+                name: "tradeup_search[max_cost]" %>
+          <span class="field-hint">Ceiling on the ten inputs</span>
+        </label>
 
-          <div class="col-md-2">
-            <label class="form-label">Max cost ($)</label>
-            <%= f.number_field :max_cost, value: @params[:max_cost],
-                  class: "form-control", step: 1, min: 0,
-                  name: "tradeup_search[max_cost]" %>
-          </div>
+        <label class="field">
+          <span class="field-label">Min profit ($)</span>
+          <%= f.number_field :min_profit, value: @params[:min_profit],
+                class: "ctl ctl-num", step: 0.5, min: 0,
+                name: "tradeup_search[min_profit]" %>
+          <span class="field-hint">Below this, the contract is dropped</span>
+        </label>
 
-          <div class="col-md-2">
-            <label class="form-label">Min profit ($)</label>
-            <%= f.number_field :min_profit, value: @params[:min_profit],
-                  class: "form-control", step: 0.5, min: 0,
-                  name: "tradeup_search[min_profit]" %>
-          </div>
+        <label class="field">
+          <span class="field-label">Cheapest fill count</span>
+          <%= f.number_field :cheapest_fill_count, value: @params[:cheapest_fill_count],
+                class: "ctl ctl-num", step: 1, min: 0, max: 9,
+                name: "tradeup_search[cheapest_fill_count]" %>
+          <span class="field-hint">Filler slots from any collection</span>
+        </label>
 
-          <div class="col-md-2">
-            <label class="form-label">Cheapest fill count</label>
-            <%= f.number_field :cheapest_fill_count, value: @params[:cheapest_fill_count],
-                  class: "form-control", step: 1, min: 0, max: 9,
-                  name: "tradeup_search[cheapest_fill_count]" %>
-            <div class="form-text">Filler slots from any collection</div>
-          </div>
+        <label class="field">
+          <span class="field-label">Min outcome lose (%)</span>
+          <%= f.number_field :minimum_outcome_lose, value: @params[:minimum_outcome_lose],
+                class: "ctl ctl-num", step: 5, min: 0, max: 100,
+                name: "tradeup_search[minimum_outcome_lose]" %>
+          <span class="field-hint">0 = allow any loss</span>
+        </label>
 
-          <div class="col-md-2">
-            <label class="form-label">Min outcome lose (%)</label>
-            <%= f.number_field :minimum_outcome_lose, value: @params[:minimum_outcome_lose],
-                  class: "form-control", step: 5, min: 0, max: 100,
-                  name: "tradeup_search[minimum_outcome_lose]" %>
-            <div class="form-text">0 = allow any loss</div>
-          </div>
+        <label class="field">
+          <span class="field-label">Results per collection</span>
+          <%= f.number_field :limit_per_collection, value: @params[:limit_per_collection],
+                class: "ctl ctl-num", step: 1, min: 1,
+                name: "tradeup_search[limit_per_collection]" %>
+          <span class="field-hint">Caps how many survive per collection</span>
+        </label>
 
-          <div class="col-md-2">
-            <label class="form-label">Results per collection</label>
-            <%= f.number_field :limit_per_collection, value: @params[:limit_per_collection],
-                  class: "form-control", step: 1, min: 1,
-                  name: "tradeup_search[limit_per_collection]" %>
-          </div>
+        <label class="field">
+          <span class="field-label">Max unique inputs</span>
+          <%= f.number_field :max_unique_inputs, value: @params[:max_unique_inputs],
+                class: "ctl ctl-num", step: 1, min: 1, max: 10,
+                name: "tradeup_search[max_unique_inputs]" %>
+          <span class="field-hint">Distinct skins across the ten slots</span>
+        </label>
 
-          <div class="col-md-2">
-            <label class="form-label">Max unique inputs</label>
-            <%= f.number_field :max_unique_inputs, value: @params[:max_unique_inputs],
-                  class: "form-control", step: 1, min: 1, max: 10,
-                  name: "tradeup_search[max_unique_inputs]" %>
-          </div>
+        <label class="field">
+          <span class="field-label">From rarity</span>
+          <%= f.select :from_rarity,
+                options_for_select([["All rarities", ""]] + TradeupSearchesController::RARITY_OPTIONS.map { |r| [r, r] }, @params[:from_rarity]),
+                {}, class: "ctl", name: "tradeup_search[from_rarity]" %>
+          <span class="field-hint">The input tier to contract up from</span>
+        </label>
 
-          <div class="col-md-3">
-            <label class="form-label">From rarity</label>
-            <%= f.select :from_rarity,
-                  options_for_select([["All rarities", ""]] + TradeupSearchesController::RARITY_OPTIONS.map { |r| [r, r] }, @params[:from_rarity]),
-                  {}, class: "form-select", name: "tradeup_search[from_rarity]" %>
-          </div>
+        <label class="field">
+          <span class="field-label">Filler strategy</span>
+          <%= f.select :filler_strategy,
+                options_for_select([["Cheapest any", "cheapest_any"], ["Mixed high wear", "mixed_high_wear"]], @params[:filler_strategy]),
+                {}, class: "ctl", name: "tradeup_search[filler_strategy]" %>
+          <span class="field-hint">How filler slots are picked</span>
+        </label>
 
-          <div class="col-md-3">
-            <label class="form-label">Filler strategy</label>
-            <%= f.select :filler_strategy,
-                  options_for_select([["Cheapest any", "cheapest_any"], ["Mixed high wear", "mixed_high_wear"]], @params[:filler_strategy]),
-                  {}, class: "form-select", name: "tradeup_search[filler_strategy]" %>
-          </div>
+        <label class="field">
+          <span class="field-label">Outcome price type</span>
+          <%= f.select :outcome_price_type,
+                options_for_select([["Latest Steam price", "latest_steam_price"], ["Latest order price", "latest_steam_order_price"]], @params[:outcome_price_type]),
+                {}, class: "ctl", name: "tradeup_search[outcome_price_type]" %>
+          <span class="field-hint">Which quote values the outcomes</span>
+        </label>
 
-          <div class="col-md-3">
-            <label class="form-label">Outcome price type</label>
-            <%= f.select :outcome_price_type,
-                  options_for_select([["Latest Steam price", "latest_steam_price"], ["Latest order price", "latest_steam_order_price"]], @params[:outcome_price_type]),
-                  {}, class: "form-select", name: "tradeup_search[outcome_price_type]" %>
-          </div>
-
-          <div class="col-md-2 d-flex flex-column justify-content-center gap-2 pt-3">
-            <div class="form-check">
-              <%= check_box_tag "tradeup_search[skip_if_price_missing]", "1",
-                    @params[:skip_if_price_missing].to_s == "1",
-                    class: "form-check-input" %>
-              <label class="form-check-label">Skip if price missing</label>
-            </div>
-            <div class="form-check">
-              <%= check_box_tag "tradeup_search[consider_float]", "1",
-                    @params[:consider_float].to_s == "1",
-                    class: "form-check-input" %>
-              <label class="form-check-label">Consider float</label>
-            </div>
-          </div>
-
+        <div class="field" style="justify-content: flex-end; gap: 6px">
+          <label class="check">
+            <%= check_box_tag "tradeup_search[skip_if_price_missing]", "1",
+                  @params[:skip_if_price_missing].to_s == "1" %>
+            Skip if price missing
+          </label>
+          <label class="check">
+            <%= check_box_tag "tradeup_search[consider_float]", "1",
+                  @params[:consider_float].to_s == "1" %>
+            Consider float
+          </label>
         </div>
       </div>
-      <div class="card-footer">
-        <button type="submit" class="btn btn-primary">
+
+      <div class="params-footer">
+        <%= button_tag type: :submit, name: nil, class: "btn-primary-brand" do %>
           <i class="bi bi-search"></i> Find profitable contracts
-        </button>
+        <% end %>
+        <%= link_to "Reset", new_tradeup_search_path, class: "btn-outline" %>
+        <div class="nav-spacer"></div>
+        <span class="params-id">
+          <%= pluralize(@recent_searches.size, "recent search") %>
+        </span>
       </div>
     </div>
   <% end %>
 
   <% if @recent_searches.any? %>
-    <h5 class="mb-3">Recent searches</h5>
-    <div class="table-responsive">
-      <table class="table table-sm table-hover align-middle">
-        <thead class="table-dark">
+    <div class="section-head"><span class="section-title">Recent searches</span></div>
+    <div class="panel" style="overflow: auto">
+      <table class="recent-table">
+        <thead>
           <tr>
             <th>#</th>
             <th>Status</th>
@@ -127,29 +142,27 @@
           </tr>
         </thead>
         <tbody>
-          <% @recent_searches.each do |s| %>
-            <% p = JSON.parse(s.params_json) rescue {} %>
+          <% @recent_searches.each do |search| %>
+            <% p = JSON.parse(search.params_json) rescue {} %>
             <tr>
-              <td class="text-muted small">#<%= s.id %></td>
+              <td class="num">#<%= search.id %></td>
               <td>
-                <% if s.done? %>
-                  <span class="badge bg-success">done</span>
-                <% elsif s.status == "running" %>
-                  <span class="badge bg-primary">
-                    <%= s.completed_jobs %>/<%= s.total_jobs %>
-                  </span>
+                <% if search.done? %>
+                  <span class="status-pill status-done">done</span>
+                <% elsif search.status == "running" %>
+                  <span class="status-pill status-running"><%= search.completed_jobs %>/<%= search.total_jobs %></span>
                 <% else %>
-                  <span class="badge bg-secondary"><%= s.status %></span>
+                  <span class="status-pill status-queued"><%= search.status %></span>
                 <% end %>
               </td>
-              <td class="small"><%= p["from_rarity"].presence || "all" %></td>
-              <td class="small"><%= p["price_fee_multiplier"] %></td>
-              <td class="small">$<%= p["max_cost"] %></td>
-              <td class="small">$<%= p["min_profit"] %></td>
-              <td class="small"><%= p["cheapest_fill_count"] %></td>
-              <td class="small"><%= s.tradeup_contracts.count %></td>
-              <td class="small text-muted"><%= s.created_at.strftime("%m/%d %H:%M") %></td>
-              <td><%= link_to "View", tradeup_search_path(s), class: "btn btn-outline-primary btn-sm" %></td>
+              <td><%= p["from_rarity"].presence || "all" %></td>
+              <td class="num"><%= p["price_fee_multiplier"] %></td>
+              <td class="num">$<%= p["max_cost"] %></td>
+              <td class="num">$<%= p["min_profit"] %></td>
+              <td class="num"><%= p["cheapest_fill_count"] %></td>
+              <td class="num"><%= search.tradeup_contracts.count %></td>
+              <td class="num"><%= search.created_at.strftime("%m/%d %H:%M") %></td>
+              <td><%= link_to "View", tradeup_search_path(search), class: "btn-outline" %></td>
             </tr>
           <% end %>
         </tbody>

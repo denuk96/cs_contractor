@@ -2,109 +2,130 @@
   <meta http-equiv="refresh" content="2">
 <% end %>
 
-<div class="container mt-4">
-  <div class="d-flex align-items-center gap-3 mb-3">
-    <h2 class="mb-0">Tradeup Search #<%= @search.id %></h2>
-    <%= link_to "New search", new_tradeup_search_path, class: "btn btn-outline-secondary btn-sm" %>
+<%
+  fill_count = (JSON.parse(@search.params_json)["cheapest_fill_count"].to_i rescue 0)
+  fee = (JSON.parse(@search.params_json)["price_fee_multiplier"] rescue nil)
+%>
+
+<div class="page">
+  <div class="section-head">
+    <div class="field" style="gap: 4px">
+      <span class="eyebrow eyebrow-brand">Contracts</span>
+      <h1>Tradeup Search #<%= @search.id %></h1>
+    </div>
+    <div class="nav-spacer"></div>
+    <%= link_to "New search", new_tradeup_search_path, class: "btn-outline" %>
   </div>
 
+  <%# The sweep runs one job per collection x wear x StatTrak combination, and
+      results land as each finishes — so the bar is the only thing that says
+      whether an empty list means "none" or "not yet". %>
   <% if @search.total_jobs %>
-    <div class="mb-4">
-      <div class="d-flex justify-content-between mb-1">
-        <span class="text-muted small">
+    <div class="progress-block">
+      <div class="progress-line">
+        <span class="progress-label">
           <% if @search.done? %>
-            Done &mdash; <%= @contracts.size %> contract<%= @contracts.size == 1 ? "" : "s" %> found
+            Done — <%= pluralize(@contracts.size, "contract") %> found
           <% else %>
-            Running &mdash; <%= @search.completed_jobs %>/<%= @search.total_jobs %> jobs &middot; <%= @contracts.size %> found so far
+            Running — <%= @search.completed_jobs %>/<%= @search.total_jobs %> jobs ·
+            <%= @contracts.size %> found so far
           <% end %>
         </span>
-        <span class="text-muted small"><%= @search.progress_pct %>%</span>
+        <span class="progress-pct"><%= @search.progress_pct %>%</span>
       </div>
-      <div class="progress" style="height: 6px;">
-        <div class="progress-bar <%= @search.done? ? 'bg-success' : 'progress-bar-striped progress-bar-animated' %>"
-             style="width: <%= @search.progress_pct %>%"></div>
+      <div class="progress-track">
+        <div class="progress-fill <%= "running" unless @search.done? %>" style="width: <%= @search.progress_pct %>%"></div>
       </div>
     </div>
   <% else %>
-    <div class="alert alert-info">Queuing jobs&hellip;</div>
+    <div class="panel empty">
+      <span class="empty-code">QUEUING</span>
+      <span class="empty-body">Queuing jobs…</span>
+    </div>
   <% end %>
-
-  <% fill_count = JSON.parse(@search.params_json)["cheapest_fill_count"].to_i rescue 0 %>
 
   <% if @contracts.empty? && @search.done? %>
-    <div class="alert alert-warning">No profitable contracts found with these parameters.</div>
+    <div class="panel empty">
+      <span class="empty-code">NO CONTRACTS</span>
+      <span class="empty-body">No profitable contracts found with these parameters.</span>
+      <%= link_to "Adjust parameters", new_tradeup_search_path, class: "btn-outline", style: "margin-top: 6px" %>
+    </div>
   <% end %>
 
-  <% @contracts.each_with_index do |tc, i| %>
-    <% c = tc.parsed_data %>
-    <div class="card mb-3">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <span>
-          <strong>#<%= i + 1 %></strong>
-          &nbsp;
-          <span class="badge bg-secondary"><%= c[:collection] %></span>
-          <span class="badge bg-dark"><%= c[:wear] %></span>
-          <span class="text-muted"><%= c[:from_rarity] %> &rarr; <%= c[:to_rarity] %></span>
-        </span>
-        <span class="d-flex gap-2">
-          <span class="badge bg-secondary">cost $<%= c[:cost].round(2) %></span>
-          <span class="badge bg-primary">EV $<%= c[:expected_value].round(2) %></span>
-          <span class="badge bg-success">profit $<%= c[:profit].round(2) %></span>
-          <span class="badge bg-warning text-dark">
-            min $<%= c[:minimal_expected_value].round(2) %> / max $<%= c[:maximum_expected_value].round(2) %>
-          </span>
-        </span>
-      </div>
+  <% if @contracts.any? %>
+    <div class="contracts">
+      <% @contracts.each_with_index do |tradeup_contract, index| %>
+        <% c = tradeup_contract.parsed_data %>
+        <div class="contract">
+          <div class="contract-head">
+            <span class="contract-rank">#<%= index + 1 %></span>
+            <span class="contract-collection"><%= c[:collection] %></span>
+            <span class="contract-wear"><%= c[:wear] %></span>
+            <span class="contract-path">
+              <span class="rar r-<%= rarity_slug(c[:from_rarity]) %>"><%= c[:from_rarity].to_s.sub(" Grade", "").upcase %></span>
+              <span class="arrow">&rarr;</span>
+              <span class="rar r-<%= rarity_slug(c[:to_rarity]) %>"><%= c[:to_rarity].to_s.sub(" Grade", "").upcase %></span>
+            </span>
 
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-6">
-            <h6 class="text-muted mb-2">Input stack (10 items)</h6>
-            <ul class="list-group list-group-flush">
-              <% c[:stack].each do |s| %>
-                <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-0">
-                  <span>
-                    <span class="badge bg-dark me-1"><%= s[:qty] %>x</span>
-                    <%= link_to s[:item_name], skin_item_path(s[:item_id]), class: "text-decoration-none" %>
-                    <% if s[:souvenir] %>
-                      <span class="badge bg-warning text-dark ms-1">SV</span>
-                    <% end %>
-                  </span>
-                  <span class="text-muted small">$<%= s[:item_price] %></span>
-                </li>
-              <% end %>
-            </ul>
+            <div class="nav-spacer"></div>
+
+            <div class="contract-stats">
+              <span class="stat-chip"><span class="k">cost</span><span class="v">$<%= c[:cost].round(2) %></span></span>
+              <span class="stat-chip ev"><span class="k">EV</span><span class="v">$<%= c[:expected_value].round(2) %></span></span>
+              <span class="stat-chip profit"><span class="k">profit</span><span class="v">$<%= c[:profit].round(2) %></span></span>
+              <span class="stat-chip range">
+                <span class="k">min–max</span>
+                <span class="v">$<%= c[:minimal_expected_value].round(2) %> – $<%= c[:maximum_expected_value].round(2) %></span>
+              </span>
+            </div>
           </div>
 
-          <div class="col-md-6">
-            <h6 class="text-muted mb-2">Possible outcomes</h6>
-            <ul class="list-group list-group-flush">
+          <div class="contract-body">
+            <div class="contract-col">
+              <span class="contract-col-title">Input stack (10 items)</span>
+              <% c[:stack].each do |s| %>
+                <div class="stack-row">
+                  <span class="qty-pill"><%= s[:qty] %>x</span>
+                  <%= link_to s[:item_name], skin_item_path(s[:item_id]), class: "stack-name" %>
+                  <% if s[:souvenir] %><span class="sv-tag">SV</span><% end %>
+                  <span class="stack-price">$<%= s[:item_price] %></span>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="contract-col">
+              <span class="contract-col-title">Possible outcomes</span>
               <% c[:outcomes].each do |o| %>
                 <%
                   prob = o[:probability] * 100
                   prob -= prob / 100.0 * (fill_count * 10) if fill_count > 0
                 %>
-                <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-0">
-                  <span>
-                    <span class="badge bg-secondary me-1"><%= prob.round(1) %>%</span>
-                    <%= link_to o[:item_name], skin_item_path(o[:item_id]), class: "text-decoration-none" %>
-                  </span>
-                  <span class="text-muted small">$<%= o[:price] %></span>
-                </li>
+                <div class="stack-row">
+                  <span class="pill-outline"><%= prob.round(1) %>%</span>
+                  <%= link_to o[:item_name], skin_item_path(o[:item_id]), class: "stack-name" %>
+                  <span class="stack-price">$<%= o[:price] %></span>
+                </div>
               <% end %>
+
               <% if fill_count > 0 %>
-                <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-0 text-muted">
-                  <span>
-                    <span class="badge bg-danger me-1"><%= (fill_count * 10.0).round(1) %>%</span>
-                    Trash outcome
-                  </span>
-                  <span class="small">$0</span>
-                </li>
+                <div class="stack-row trash">
+                  <span class="pill-outline" style="color: var(--bad); border-color: var(--bad)"><%= (fill_count * 10.0).round(1) %>%</span>
+                  <span class="stack-name">Trash outcome</span>
+                  <span class="stack-price">$0</span>
+                </div>
               <% end %>
-            </ul>
+
+              <p class="contract-note">
+                EV is <code>Σ probability × price<%= " × #{fee}" if fee %></code>.
+                <% if fill_count > 0 %>
+                  The <%= fill_count %> filler <%= "slot".pluralize(fill_count) %> dilute every outcome by
+                  <%= (fill_count * 10.0).round(1) %>% and contribute that share as a trash outcome worth $0.
+                <% end %>
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      <% end %>
     </div>
   <% end %>
 </div>

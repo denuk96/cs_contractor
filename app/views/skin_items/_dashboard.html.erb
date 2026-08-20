@@ -1,0 +1,13 @@
+<%# locals: number, title, subtitle, tip_title, tip_body, chart_id %>
+<div class="dash">
+  <div class="dash-head">
+    <span class="dash-number"><%= number %></span>
+    <span class="dash-title"><%= title %></span>
+    <span class="dash-sub"><%= subtitle %></span>
+    <%= info_dot(tip_title, tip_body) %>
+  </div>
+  <div class="dash-panel" data-controller="chart-legend" data-chart-legend-chart-id-value="<%= chart_id %>">
+    <div class="chart-legend" data-chart-legend-target="list"></div>
+    <%= yield %>
+  </div>
+</div>
